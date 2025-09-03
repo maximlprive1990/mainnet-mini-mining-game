@@ -1423,11 +1423,6 @@
         }
 
         function performClick() {
-            if (!currentUser) {
-                showNotification('Veuillez vous connecter pour jouer', 'error');
-                return;
-            }
-            
             if (gameState.energy < 1) {
                 showNotification('Énergie insuffisante!', 'error');
                 return;
@@ -1435,6 +1430,7 @@
             
             gameState.energy -= 1;
             gameState.totalClicks += 1;
+            gameState.lastEnergyUpdate = Date.now();
             const tokensEarned = gameState.clickPower * 0.1;
             gameState.gameBalance += tokensEarned;
             
