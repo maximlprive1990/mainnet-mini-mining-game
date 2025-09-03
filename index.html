@@ -1456,7 +1456,7 @@
         }
 
         function transferBalance() {
-            if (!currentUser || gameState.gameBalance <= 0) return;
+            if (gameState.gameBalance <= 0) return;
             
             const transferred = gameState.gameBalance;
             gameState.mainBalance += transferred;
@@ -1468,8 +1468,6 @@
         }
 
         function buyUpgrade(type) {
-            if (!currentUser) return;
-            
             const upgrades = {
                 'energy_regen': { price: 50, name: 'Energy Regeneration' },
                 'double_click': { price: 100, name: 'Double Click Power' },
@@ -1491,7 +1489,7 @@
             gameState.mainBalance -= price;
             gameState.upgrades[type] = currentLevel + 1;
             
-            // Apply upgrade effects
+            // Apply upgrade effects  
             switch(type) {
                 case 'energy_regen':
                     gameState.energyRegenRate += 1;
@@ -1515,8 +1513,6 @@
         }
 
         function completeTask(taskType) {
-            if (!currentUser) return;
-            
             if (gameState.completedTasks.includes(taskType)) {
                 showNotification('Tâche déjà complétée!', 'error');
                 return;
@@ -1548,7 +1544,7 @@
         }
 
         function showDepositModal() {
-            showNotification('Utilisez Payeer (P1112145219) ou FaucetPay (maximlprive90@gmail.com) pour déposer des fonds. +17% de bonus automatique!');
+            showNotification('💰 Utilisez Payeer (P1112145219) ou FaucetPay (maximlprive90@gmail.com) pour déposer des fonds. +17% de bonus automatique!');
         }
 
         // Initialize auth form
