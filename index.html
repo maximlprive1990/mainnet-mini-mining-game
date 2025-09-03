@@ -2007,17 +2007,27 @@
 
         function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
+            
+            let bgColor = 'rgba(0, 255, 136, 0.9)'; // success - green
+            if (type === 'error') {
+                bgColor = 'rgba(255, 68, 68, 0.9)'; // error - red
+            } else if (type === 'warning') {
+                bgColor = 'rgba(255, 193, 7, 0.9)'; // warning - yellow
+            }
+            
             notification.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: ${type === 'error' ? 'rgba(255, 0, 0, 0.9)' : 'rgba(0, 255, 136, 0.9)'};
+                background: ${bgColor};
                 color: white;
                 padding: 12px 24px;
                 border-radius: 8px;
                 z-index: 1000;
                 font-family: 'Roboto Mono', monospace;
                 animation: slideIn 0.3s ease-out;
+                max-width: 300px;
+                word-wrap: break-word;
             `;
             notification.textContent = message;
             
@@ -2030,7 +2040,7 @@
                         notification.parentNode.removeChild(notification);
                     }
                 }, 300);
-            }, 3000);
+            }, 5000);
         }
 
         // Energy regeneration
