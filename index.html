@@ -1384,7 +1384,357 @@
         // Initialize Lucide icons
         lucide.createIcons();
 
-        // Countdown Timer
+        // Auth Functions
+        function checkAuth() {
+            if (!authToken) {
+                showAuthModal();
+                return false;
+            }
+            return true;
+        }
+
+        function showAuthModal() {
+            document.getElementById('auth-modal').style.display = 'flex';
+        }
+
+        function hideAuthModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const submitBtn = document.getElementById('auth-submit');
+            const toggleBtn = document.getElementById('auth-toggle');
+            const usernameField = document.getElementById('username-field');
+            const referralField = document.getElementById('referral-field');
+            const usernameInput = document.getElementById('username');
+            
+            if (isLoginMode) {
+                title.textContent = 'Connexion';
+                subtitle.textContent = 'Connectez-vous à votre compte';
+                submitBtn.textContent = 'Se connecter';
+                toggleBtn.textContent = 'Créer un compte';
+                usernameField.classList.add('hidden');
+                referralField.classList.add('hidden');
+                usernameInput.required = false;
+            } else {
+                title.textContent = 'Inscription';
+                subtitle.textContent = 'Créez votre compte mAInet';
+                submitBtn.textContent = 'S\'inscrire';
+                toggleBtn.textContent = 'Déjà inscrit ? Se connecter';
+                usernameField.classList.remove('hidden');
+                referralField.classList.remove('hidden');
+                usernameInput.required = true;
+            }
+        }
+
+        async function handleAuth(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value;
+            const referralCode = document.getElementById('referral-code').value;
+            
+            try {
+                let response;
+                
+                if (isLoginMode) {
+                    response = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password
+                        })
+                    });
+                } else {
+                    response = await fetch(`${API_BASE}/auth/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            username: username,
+                            password: password,
+                            referral_code: referralCode || undefined
+                        })
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    localStorage.setItem('token', authToken);
+                    
+                    showNotification(isLoginMode ? 'Connexion réussie!' : 'Inscription réussie!');
+                    hideAuthModal();
+                    await fetchUserData();
+                    await fetchGameData();
+                } else {
+                    showNotification(data.detail || 'Erreur d\'authentification', 'error');
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                showNotification('Erreur de connexion au serveur', 'error');
+            }
+        }
+
+        async function fetchUserData() {
+            if (!authToken) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    updateUserDisplay();
+                } else {
+                    throw new Error('Failed to fetch user data');
+                }
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+                logout();
+            }
+        }
+
+        async function fetchGameData() {
+            if (!authToken) return;
+            
+            try {
+                const [statsResponse, gameResponse] = await Promise.all([
+                    fetch(`${API_BASE}/stats`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    }),
+                    fetch(`${API_BASE}/game/status`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    })
+                ]);
+                
+                if (statsResponse.ok && gameResponse.ok) {
+                    const stats = await statsResponse.json();
+                    const gameData = await gameResponse.json();
+                    
+                    // Update game state with real data
+                    gameState.mainBalance = stats.balance || 0;
+                    gameState.bonusBalance = stats.bonus_balance || 0;
+                    gameState.energy = gameData.energy || 100;
+                    gameState.maxEnergy = gameData.max_energy || 100;
+                    gameState.energyRegenRate = gameData.energy_regen_rate || 1;
+                    gameState.clickPower = gameData.click_power || 1;
+                    gameState.autoMiningRate = gameData.auto_mining_rate || 0;
+                    gameState.totalClicks = gameData.total_clicks || 0;
+                    gameState.gameBalance = gameData.game_balance || 0;
+                    
+                    updateDisplay();
+                } else {
+                    throw new Error('Failed to fetch game data');
+                }
+            } catch (error) {
+                console.error('Failed to fetch game data:', error);
+            }
+        }
+
+        function updateUserDisplay() {
+            if (currentUser) {
+                // User is logged in, hide auth modal and show main content
+                hideAuthModal();
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('token');
+            showAuthModal();
+            showNotification('Déconnexion réussie');
+        }
+
+        // Real API Functions
+        async function performClick() {
+            if (!authToken || gameState.energy < 1) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/game/click`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ clicks: 1 })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    gameState.energy = data.energy_remaining;
+                    gameState.totalClicks = data.total_clicks;
+                    gameState.gameBalance += data.tokens_earned;
+                    
+                    // Create click animation
+                    const clickBtn = document.getElementById('click-btn');
+                    const rect = clickBtn.getBoundingClientRect();
+                    const animation = document.createElement('div');
+                    animation.className = 'click-animation';
+                    animation.textContent = `+${data.tokens_earned.toFixed(3)}`;
+                    animation.style.left = `${rect.width / 2}px`;
+                    animation.style.top = `${rect.height / 2}px`;
+                    clickBtn.appendChild(animation);
+                    
+                    setTimeout(() => {
+                        if (animation.parentNode) {
+                            animation.parentNode.removeChild(animation);
+                        }
+                    }, 1000);
+                    
+                    updateDisplay();
+                    showNotification(`+${data.tokens_earned.toFixed(3)} tokens gagnés!`);
+                } else {
+                    const error = await response.json();
+                    showNotification(error.detail || 'Erreur lors du clic', 'error');
+                }
+            } catch (error) {
+                console.error('Click error:', error);
+                showNotification('Erreur de connexion', 'error');
+            }
+        }
+
+        async function transferBalance() {
+            if (!authToken || gameState.gameBalance <= 0) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/game/transfer`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    gameState.mainBalance += data.transferred_amount;
+                    gameState.gameBalance = 0;
+                    
+                    updateDisplay();
+                    showNotification(`${data.transferred_amount.toFixed(3)} tokens transférés vers votre solde principal!`);
+                } else {
+                    const error = await response.json();
+                    showNotification(error.detail || 'Erreur lors du transfert', 'error');
+                }
+            } catch (error) {
+                console.error('Transfer error:', error);
+                showNotification('Erreur de connexion', 'error');
+            }
+        }
+
+        async function buyUpgrade(type) {
+            if (!authToken) return;
+            
+            // Get upgrade ID based on type
+            const upgradeMap = {
+                'energy_regen': 'energy_regen',
+                'double_click': 'double_click', 
+                'auto_mining': 'auto_mining',
+                'max_energy': 'max_energy'
+            };
+            
+            try {
+                // First get upgrades to find the correct ID
+                const upgradesResponse = await fetch(`${API_BASE}/upgrades`);
+                if (!upgradesResponse.ok) return;
+                
+                const upgrades = await upgradesResponse.json();
+                const upgrade = upgrades.find(u => u.upgrade_type === type);
+                
+                if (!upgrade) {
+                    showNotification('Amélioration non trouvée', 'error');
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/upgrades/${upgrade.id}/buy`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    showNotification('Amélioration achetée avec succès!');
+                    await fetchGameData(); // Refresh all data
+                } else {
+                    const error = await response.json();
+                    showNotification(error.detail || 'Erreur lors de l\'achat', 'error');
+                }
+            } catch (error) {
+                console.error('Upgrade error:', error);
+                showNotification('Erreur de connexion', 'error');
+            }
+        }
+
+        async function completeTask(taskType) {
+            if (!authToken) return;
+            
+            try {
+                // Get tasks to find the correct ID
+                const tasksResponse = await fetch(`${API_BASE}/tasks`);
+                if (!tasksResponse.ok) return;
+                
+                const tasks = await tasksResponse.json();
+                const task = tasks.find(t => t.task_type === taskType || t.title.toLowerCase().includes(taskType));
+                
+                if (!task) {
+                    showNotification('Tâche non trouvée', 'error');
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/tasks/${task.id}/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    gameState.mainBalance += task.reward;
+                    updateDisplay();
+                    showNotification(`Tâche complétée! +${task.reward} tokens`);
+                } else {
+                    const error = await response.json();
+                    showNotification(error.detail || 'Erreur lors de la completion', 'error');
+                }
+            } catch (error) {
+                console.error('Task error:', error);
+                showNotification('Erreur de connexion', 'error');
+            }
+        }
+
+        // Initialize auth form
+        document.getElementById('auth-form').addEventListener('submit', handleAuth);
+        
+        // Check auth on page load
+        if (authToken) {
+            fetchUserData().then(() => {
+                fetchGameData();
+            });
+        } else {
+            showAuthModal();
+        }
         function updateCountdown() {
             const targetDate = new Date('2026-03-29T00:00:00');
             const now = new Date();
