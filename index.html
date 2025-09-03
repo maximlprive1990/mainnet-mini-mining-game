@@ -1360,14 +1360,12 @@
     </div>
 
     <script>
-        // API Configuration
-        const API_BASE = 'https://payeer-deposit.preview.emergentagent.com/api';
-        
-        // Test mode - set to true if API is not accessible
-        let isTestMode = false;
+        // Local Storage Configuration
+        const USERS_KEY = 'mainet_users';
+        const CURRENT_USER_KEY = 'mainet_current_user';
+        const GAME_DATA_KEY = 'mainet_game_data';
         
         // Auth State
-        let authToken = localStorage.getItem('token');
         let currentUser = null;
         let isLoginMode = true;
         
@@ -1381,7 +1379,14 @@
             totalClicks: 0,
             gameBalance: 0.0,
             mainBalance: 0.0,
-            bonusBalance: 0.0
+            bonusBalance: 0.0,
+            upgrades: {
+                energy_regen: 0,
+                double_click: 0,
+                auto_mining: 0,
+                max_energy: 0
+            },
+            completedTasks: []
         };
 
         // Initialize Lucide icons
