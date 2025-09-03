@@ -1614,15 +1614,25 @@
 
         // Real API Functions
         async function performClick() {
-            if (!authToken || gameState.energy < 1) return;
+            if (!authToken) {
+                showNotification('Veuillez vous connecter pour jouer', 'error');
+                return;
+            }
+            
+            if (gameState.energy < 1) {
+                showNotification('Énergie insuffisante!', 'error');
+                return;
+            }
             
             try {
                 const response = await fetch(`${API_BASE}/game/click`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
+                        'Authorization': `Bearer ${authToken}`,
+                        'Accept': 'application/json',
                     },
+                    mode: 'cors',
                     body: JSON.stringify({ clicks: 1 })
                 });
                 
@@ -1652,12 +1662,30 @@
                     updateDisplay();
                     showNotification(`+${data.tokens_earned.toFixed(3)} tokens gagnés!`);
                 } else {
-                    const error = await response.json();
-                    showNotification(error.detail || 'Erreur lors du clic', 'error');
+                    const errorText = await response.text();
+                    let errorMessage;
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.detail || 'Erreur lors du clic';
+                    } catch {
+                        errorMessage = 'Erreur lors du clic';
+                    }
+                    showNotification(errorMessage, 'error');
                 }
             } catch (error) {
                 console.error('Click error:', error);
-                showNotification('Erreur de connexion', 'error');
+                
+                // Fallback to local click if API fails
+                if (gameState.energy >= 1) {
+                    gameState.energy -= 1;
+                    gameState.totalClicks += 1;
+                    gameState.gameBalance += gameState.clickPower * 0.1;
+                    
+                    updateDisplay();
+                    showNotification(`+${(gameState.clickPower * 0.1).toFixed(3)} tokens (mode hors-ligne)`);
+                } else {
+                    showNotification('Erreur de connexion au serveur', 'error');
+                }
             }
         }
 
