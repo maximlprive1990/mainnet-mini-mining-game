@@ -195,7 +195,13 @@ async def get_or_create_user_game(user_id: str) -> UserGame:
 
 async def update_energy(user_game: UserGame) -> UserGame:
     now = datetime.now(timezone.utc)
-    time_diff = (now - user_game.last_energy_update).total_seconds() / 60  # minutes
+    
+    # Ensure last_energy_update has timezone info
+    last_update = user_game.last_energy_update
+    if last_update.tzinfo is None:
+        last_update = last_update.replace(tzinfo=timezone.utc)
+    
+    time_diff = (now - last_update).total_seconds() / 60  # minutes
     
     energy_gained = int(time_diff * user_game.energy_regen_rate)
     if energy_gained > 0:
