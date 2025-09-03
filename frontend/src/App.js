@@ -442,6 +442,7 @@ const ClickGame = () => {
                         {upgrade.upgrade_type === 'energy_regen' && <Bolt className="w-4 h-4 text-yellow-400" />}
                         {upgrade.upgrade_type === 'double_click' && <MousePointer className="w-4 h-4 text-blue-400" />}
                         {upgrade.upgrade_type === 'auto_mining' && <Cog className="w-4 h-4 text-purple-400" />}
+                        {upgrade.upgrade_type === 'max_energy' && <Gauge className="w-4 h-4 text-orange-400" />}
                         <span className="font-semibold text-white text-sm">{upgrade.name}</span>
                       </div>
                       <Badge variant="outline" className="cyber-badge text-xs">
