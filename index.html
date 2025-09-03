@@ -1509,9 +1509,23 @@
                 let errorMessage = 'Erreur de connexion au serveur';
                 
                 if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    errorMessage = 'Impossible de se connecter au serveur. Vérifiez votre connexion internet.';
+                    // Enable test mode if API is not accessible
+                    isTestMode = true;
+                    authToken = 'test-token-' + Date.now();
+                    localStorage.setItem('token', authToken);
+                    currentUser = { 
+                        email: email, 
+                        username: username || email.split('@')[0],
+                        balance: 100,
+                        bonus_balance: 50
+                    };
+                    
+                    showNotification('Mode test activé - API non accessible', 'warning');
+                    hideAuthModal();
+                    updateDisplay();
+                    return;
                 } else if (error.message.includes('CORS')) {
-                    errorMessage = 'Erreur CORS. Le serveur n\'autorise pas les requêtes depuis ce domaine.';
+                    errorMessage = 'Erreur CORS. Essayez d\'ouvrir la page directement depuis le serveur.';
                 } else if (error.message) {
                     errorMessage = error.message;
                 }
