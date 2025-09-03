@@ -269,6 +269,172 @@ class mAInetAPITester:
         )
         return success
 
+    # NEW GAME FUNCTIONALITY TESTS
+    def test_game_status(self):
+        """Test getting game status"""
+        success, response = self.run_test(
+            "Get Game Status",
+            "GET",
+            "game/status",
+            200
+        )
+        if success:
+            expected_keys = ['energy', 'max_energy', 'energy_regen_rate', 'click_power', 'auto_mining_rate', 'total_clicks', 'game_balance']
+            for key in expected_keys:
+                if key not in response:
+                    print(f"   ⚠️  Missing key in game status: {key}")
+            self.game_status = response
+        return success
+
+    def test_game_click(self):
+        """Test clicking in the game"""
+        success, response = self.run_test(
+            "Game Click Action",
+            "POST",
+            "game/click",
+            200,
+            data={"clicks": 1}
+        )
+        if success:
+            expected_keys = ['tokens_earned', 'energy_remaining', 'total_clicks']
+            for key in expected_keys:
+                if key not in response:
+                    print(f"   ⚠️  Missing key in click response: {key}")
+            print(f"   Tokens earned: {response.get('tokens_earned', 0)}")
+            print(f"   Energy remaining: {response.get('energy_remaining', 0)}")
+        return success
+
+    def test_game_multiple_clicks(self):
+        """Test multiple clicks to drain energy"""
+        success, response = self.run_test(
+            "Game Multiple Clicks",
+            "POST",
+            "game/click",
+            200,
+            data={"clicks": 5}
+        )
+        return success
+
+    def test_game_click_no_energy(self):
+        """Test clicking when no energy (should fail)"""
+        # First drain all energy
+        for i in range(20):  # Try to drain energy
+            self.run_test(
+                f"Drain Energy Click {i+1}",
+                "POST",
+                "game/click",
+                200,
+                data={"clicks": 10}
+            )
+        
+        # Now try to click with no energy - should fail
+        success, response = self.run_test(
+            "Game Click No Energy (Should Fail)",
+            "POST",
+            "game/click",
+            400,  # Should return 400 for insufficient energy
+            data={"clicks": 1}
+        )
+        return success
+
+    def test_game_transfer_balance(self):
+        """Test transferring game balance to main balance"""
+        # First make sure we have some game balance by clicking
+        self.run_test(
+            "Generate Game Balance",
+            "POST",
+            "game/click",
+            200,
+            data={"clicks": 1}
+        )
+        
+        success, response = self.run_test(
+            "Transfer Game Balance",
+            "POST",
+            "game/transfer",
+            200
+        )
+        if success and 'transferred_amount' in response:
+            print(f"   Transferred amount: {response['transferred_amount']}")
+        return success
+
+    def test_get_upgrades(self):
+        """Test getting all available upgrades"""
+        success, response = self.run_test(
+            "Get All Upgrades",
+            "GET",
+            "upgrades",
+            200
+        )
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} upgrades")
+            self.available_upgrades = response
+            for upgrade in response:
+                print(f"   - {upgrade.get('name', 'Unknown')}: {upgrade.get('upgrade_type', 'Unknown')} (${upgrade.get('base_price', 0)})")
+        return success
+
+    def test_get_my_upgrades(self):
+        """Test getting user's upgrades"""
+        success, response = self.run_test(
+            "Get My Upgrades",
+            "GET",
+            "upgrades/my",
+            200
+        )
+        if success and isinstance(response, list):
+            print(f"   User has {len(response)} upgrades")
+        return success
+
+    def test_buy_upgrade(self):
+        """Test buying an upgrade"""
+        if not hasattr(self, 'available_upgrades') or not self.available_upgrades:
+            print("❌ No upgrades available to buy")
+            return False
+        
+        # Find the cheapest upgrade
+        cheapest_upgrade = min(self.available_upgrades, key=lambda x: x.get('base_price', float('inf')))
+        upgrade_id = cheapest_upgrade['id']
+        
+        success, response = self.run_test(
+            f"Buy Upgrade: {cheapest_upgrade.get('name', 'Unknown')}",
+            "POST",
+            f"upgrades/{upgrade_id}/buy",
+            200
+        )
+        if success:
+            print(f"   New level: {response.get('new_level', 'Unknown')}")
+            print(f"   Price paid: ${response.get('price', 0)}")
+        return success
+
+    def test_affordable_products(self):
+        """Test that affordable products (< $100) exist"""
+        success, response = self.run_test(
+            "Check Affordable Products",
+            "GET",
+            "products",
+            200
+        )
+        if success and isinstance(response, list):
+            affordable_products = [p for p in response if p.get('price', float('inf')) < 100]
+            print(f"   Found {len(affordable_products)} affordable products (< $100)")
+            
+            expected_affordable = [
+                "USB ASIC Miner",
+                "Starter Cloud Mining",
+                "Basic Cloud Mining", 
+                "Mini Mining Contract"
+            ]
+            
+            found_names = [p.get('name', '') for p in affordable_products]
+            for expected in expected_affordable:
+                if any(expected in name for name in found_names):
+                    print(f"   ✅ Found expected affordable product: {expected}")
+                else:
+                    print(f"   ⚠️  Missing expected affordable product: {expected}")
+            
+            return len(affordable_products) >= 4  # Should have at least 4 affordable products
+        return False
+
 def main():
     print("🚀 Starting mAInet API Testing...")
     print("=" * 50)
