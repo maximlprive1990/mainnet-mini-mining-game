@@ -1363,6 +1363,9 @@
         // API Configuration
         const API_BASE = 'https://payeer-deposit.preview.emergentagent.com/api';
         
+        // Test mode - set to true if API is not accessible
+        let isTestMode = false;
+        
         // Auth State
         let authToken = localStorage.getItem('token');
         let currentUser = null;
