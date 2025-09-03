@@ -1547,12 +1547,32 @@
             showNotification('💰 Utilisez Payeer (P1112145219) ou FaucetPay (maximlprive90@gmail.com) pour déposer des fonds. +17% de bonus automatique!');
         }
 
-        // Initialize auth form
-        document.getElementById('auth-form').addEventListener('submit', handleAuth);
-        
-        // Check auth on page load
+        // Energy regeneration
+        function regenerateEnergy() {
+            if (gameState.energy < gameState.maxEnergy) {
+                gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + (gameState.energyRegenRate / 60));
+                gameState.lastEnergyUpdate = Date.now();
+                updateDisplay();
+                saveGameData();
+            }
+        }
+
+        // Auto mining
+        function autoMining() {
+            if (gameState.autoMiningRate > 0) {
+                gameState.gameBalance += gameState.autoMiningRate / 60;
+                updateDisplay();
+                saveGameData();
+            }
+        }
+
+        // Start intervals
+        setInterval(regenerateEnergy, 1000); // Every second
+        setInterval(autoMining, 1000); // Every second
+
+        // Initialize game on page load
         window.addEventListener('load', function() {
-            checkAuth();
+            initializeGame();
         });
         function updateCountdown() {
             const targetDate = new Date('2026-03-29T00:00:00');
