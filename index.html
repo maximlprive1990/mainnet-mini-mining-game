@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mAInet - Airdrop 2026 & Mining Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        :root {
+            --cyber-green: #00ff88;
+            --cyber-green-dark: #00cc66;
+            --cyber-blue: #00ccff;
+            --cyber-purple: #8855ff;
+            --cyber-yellow: #ffdd00;
+            --cyber-orange: #ff8800;
+            --cyber-bg: #0a0a0a;
+            --cyber-bg-secondary: #111111;
+            --cyber-bg-tertiary: #1a1a1a;
+            --cyber-border: #333333;
+            --cyber-text: #ffffff;
+            --cyber-text-secondary: #aaaaaa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: var(--cyber-bg);
+            color: var(--cyber-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 204, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(136, 85, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Header Styles */
+        .cyber-header {
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--cyber-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 0;
+        }
+
+        .cyber-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .cyber-stats {
+            display: flex;
+            gap: 24px;
+            padding: 8px 16px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Hero Section */
+        .cyber-hero {
+            background: 
+                linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(26, 26, 26, 0.9) 100%),
+                url('https://images.unsplash.com/photo-1601042879364-f3947d3f9c16?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxjeWJlcnB1bmt8ZW58MHx8fHwxNzU2OTI3NTAwfDA&ixlib=rb-4.1.0&q=85');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+            overflow: hidden;
+            padding: 4rem 0;
+        }
+
+        .cyber-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, transparent 49%, rgba(0, 255, 136, 0.1) 50%, transparent 51%),
+                linear-gradient(-45deg, transparent 49%, rgba(0, 204, 255, 0.1) 50%, transparent 51%);
+            background-size: 20px 20px;
+            animation: cyber-grid 20s linear infinite;
+        }
+
+        @keyframes cyber-grid {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(20px, 20px); }
+        }
+
+        .cyber-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 4rem;
+            font-weight: 900;
+            text-align: center;
+            background: linear-gradient(135deg, var(--cyber-green) 0%, var(--cyber-blue) 50%, var(--cyber-purple) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+            letter-spacing: 3px;
+            margin-bottom: 24px;
+            animation: cyber-glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes cyber-glow {
+            0% { filter: brightness(1) drop-shadow(0 0 20px rgba(0, 255, 136, 0.3)); }
+            100% { filter: brightness(1.2) drop-shadow(0 0 40px rgba(0, 255, 136, 0.6)); }
+        }
+
+        .cyber-subtitle {
+            font-size: 1.5rem;
+            color: var(--cyber-text-secondary);
+            text-align: center;
+            margin-bottom: 48px;
+            font-weight: 300;
+        }
+
+        .cyber-countdown {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 48px;
+        }
+
+        .countdown-item {
+            text-align: center;
+            padding: 24px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .countdown-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--cyber-green);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .countdown-number {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--cyber-green);
+            line-height: 1;
+        }
+
+        .countdown-label {
+            font-size: 0.875rem;
+            color: var(--cyber-text-secondary);
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin-top: 8px;
+        }
+
+        /* Cards */
+        .cyber-card {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid var(--cyber-border);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .cyber-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyber-green), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .cyber-card:hover::before {
+            left: 100%;
+        }
+
+        .cyber-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.2);
+        }
+
+        /* Click Game Styles */
+        .click-game-card {
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(40, 40, 40, 0.8) 100%);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .click-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            position: relative;
+        }
+
+        .click-button {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border: none;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.8) 0%, rgba(0, 255, 136, 0.4) 50%, rgba(0, 255, 136, 0.1) 100%);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            overflow: hidden;
+            box-shadow: 
+                0 0 40px rgba(0, 255, 136, 0.5),
+                inset 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .click-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 
+                0 0 60px rgba(0, 255, 136, 0.7),
+                inset 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .click-button:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .click-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: radial-gradient(circle, rgba(100, 100, 100, 0.3) 0%, rgba(50, 50, 50, 0.2) 100%);
+            box-shadow: 0 0 20px rgba(100, 100, 100, 0.2);
+        }
+
+        .click-button-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: white;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .click-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-top: 8px;
+            letter-spacing: 2px;
+        }
+
+        .click-power {
+            font-size: 0.8rem;
+            font-weight: 500;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .click-animation {
+            position: absolute;
+            color: var(--cyber-green);
+            font-family: 'Orbitron', monospace;
+            font-weight: bold;
+            font-size: 1.2rem;
+            pointer-events: none;
+            animation: float-up 1s ease-out forwards;
+            z-index: 10;
+        }
+
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        .energy-bar {
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 4px;
+            height: 12px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .energy-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyber-yellow) 0%, var(--cyber-green) 100%);
+            transition: width 0.3s ease;
+        }
+
+        /* Upgrades */
+        .upgrade-card {
+            background: rgba(40, 40, 40, 0.5);
+            border: 1px solid var(--cyber-border);
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+        }
+
+        .upgrade-card:hover {
+            border-color: rgba(0, 255, 136, 0.5);
+            background: rgba(40, 40, 40, 0.7);
+        }
+
+        /* Buttons */
+        .cyber-button {
+            background: linear-gradient(135deg, var(--cyber-green) 0%, var(--cyber-green-dark) 100%);
+            color: var(--cyber-bg);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-family: 'Roboto Mono', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cyber-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .cyber-button:hover::before {
+            left: 100%;
+        }
+
+        .cyber-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
+            background: linear-gradient(135deg, var(--cyber-green-dark) 0%, var(--cyber-green) 100%);
+        }
+
+        .cyber-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        .grid-cols-1 { grid-template-columns: 1fr; }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .text-center { text-align: center; }
+
+        .space-x-2 > * + * { margin-left: 8px; }
+        .space-x-4 > * + * { margin-left: 16px; }
+        .space-y-4 > * + * { margin-top: 16px; }
+
+        .mb-4 { margin-bottom: 16px; }
+        .mb-8 { margin-bottom: 32px; }
+        .mt-4 { margin-top: 16px; }
+        .p-6 { padding: 24px; }
+
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        .font-mono { font-family: 'Roboto Mono', monospace; }
+
+        .text-white { color: var(--cyber-text); }
+        .text-gray-400 { color: var(--cyber-text-secondary); }
+        .text-cyber-green { color: var(--cyber-green); }
+        .text-yellow-400 { color: var(--cyber-yellow); }
+        .text-blue-400 { color: var(--cyber-blue); }
+        .text-purple-400 { color: var(--cyber-purple); }
+        .text-orange-400 { color: var(--cyber-orange); }
+
+        /* Badge */
+        .badge {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--cyber-green);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--cyber-green);
+            border: 1px solid var(--cyber-green);
+        }
+
+        /* Tabs */
+        .tabs {
+            margin-top: 32px;
+        }
+
+        .tabs-list {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid var(--cyber-border);
+            border-radius: 8px;
+            padding: 4px;
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+        }
+
+        .tab-trigger {
+            background: transparent;
+            border: none;
+            color: var(--cyber-text-secondary);
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .tab-trigger.active {
+            background: var(--cyber-green);
+            color: var(--cyber-bg);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .product-card {
+            overflow: hidden;
+        }
+
+        .product-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.1);
+        }
+
+        .product-overlay {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cyber-title {
+                font-size: 2.5rem;
+            }
+            
+            .cyber-countdown {
+                gap: 16px;
+            }
+            
+            .countdown-item {
+                padding: 16px;
+            }
+            
+            .countdown-number {
+                font-size: 2rem;
+            }
+            
+            .cyber-stats {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .click-button {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .click-text {
+                font-size: 1rem;
+            }
+            
+            .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .cyber-title {
+                font-size: 2rem;
+            }
+            
+            .cyber-subtitle {
+                font-size: 1.125rem;
+            }
+            
+            .cyber-countdown {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            
+            .countdown-item {
+                flex: 1;
+                min-width: 120px;
+                padding: 12px;
+            }
+            
+            .click-area {
+                min-height: 200px;
+            }
+            
+            .click-button {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .click-text {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            gap: 16px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.125rem;
+            color: var(--cyber-green);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .icon-lg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .icon-xl {
+            width: 64px;
+            height: 64px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="cyber-header">
+        <div class="container">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="cyber-logo">
+                        <i data-lucide="zap" class="icon-lg text-cyber-green"></i>
+                        <span class="text-2xl font-bold text-white">mAInet</span>
+                    </div>
+                    <span class="badge">Airdrop 2026</span>
+                </div>
+                
+                <div class="cyber-stats">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="coins" class="icon text-cyber-green"></i>
+                        <span class="text-cyber-green font-mono" id="main-balance">0.00</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="gift" class="icon text-yellow-400"></i>
+                        <span class="text-yellow-400 font-mono" id="bonus-balance">0.00</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="mouse-pointer" class="icon text-purple-400"></i>
+                        <span class="text-purple-400 font-mono" id="game-balance">0.000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="cyber-hero">
+        <div class="container">
+            <div class="text-center">
+                <h1 class="cyber-title">
+                    AIRDROP mAInet 2026
+                </h1>
+                <p class="cyber-subtitle">
+                    Rejoignez la révolution du mining et gagnez des tokens
+                </p>
+                <div class="cyber-countdown">
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="days">126</div>
+                        <div class="countdown-label">JOURS</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="hours">15</div>
+                        <div class="countdown-label">HEURES</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="minutes">42</div>
+                        <div class="countdown-label">MINUTES</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 grid-cols-2 grid-cols-4 mb-8" style="margin-top: 32px;">
+            <div class="cyber-card">
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400">Solde Principal</p>
+                            <p class="text-2xl font-bold text-cyber-green" id="stats-balance">0.00</p>
+                        </div>
+                        <i data-lucide="wallet" class="icon-xl text-cyber-green"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cyber-card">
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400">Bonus (+17%)</p>
+                            <p class="text-2xl font-bold text-yellow-400" id="stats-bonus">0.00</p>
+                        </div>
+                        <i data-lucide="gift" class="icon-xl text-yellow-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cyber-card">
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400">Total Gagné</p>
+                            <p class="text-2xl font-bold text-blue-400" id="stats-earned">0.00</p>
+                        </div>
+                        <i data-lucide="trending-up" class="icon-xl text-blue-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cyber-card">
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400">Jeu - Solde</p>
+                            <p class="text-2xl font-bold text-purple-400" id="stats-game">0.000</p>
+                        </div>
+                        <i data-lucide="mouse-pointer" class="icon-xl text-purple-400"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tabs-list">
+                <button class="tab-trigger active" onclick="showTab('game')">Jeu de Clic</button>
+                <button class="tab-trigger" onclick="showTab('tasks')">Tâches</button>
+                <button class="tab-trigger" onclick="showTab('shop')">Boutique</button>
+                <button class="tab-trigger" onclick="showTab('deposits')">Dépôts</button>
+                <button class="tab-trigger" onclick="showTab('referral')">Parrainage</button>
+            </div>
+
+            <!-- Game Tab -->
+            <div id="tab-game" class="tab-content active">
+                <div class="grid grid-cols-1 grid-cols-3">
+                    <!-- Game Area -->
+                    <div style="grid-column: span 2;">
+                        <div class="cyber-card click-game-card">
+                            <div class="p-6">
+                                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                                    <i data-lucide="mouse-pointer" class="icon text-cyber-green"></i>
+                                    <span style="margin-left: 8px;">Jeu de Clic - Mining</span>
+                                </h3>
+                                
+                                <div class="grid grid-cols-2 mb-6">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Solde du Jeu</p>
+                                        <div class="flex items-center space-x-2">
+                                            <i data-lucide="coins" class="icon text-cyber-green"></i>
+                                            <span class="text-xl font-bold text-cyber-green" id="game-balance-display">0.000</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-400">Total Clics</p>
+                                        <div class="flex items-center space-x-2">
+                                            <i data-lucide="target" class="icon text-blue-400"></i>
+                                            <span class="text-xl font-bold text-blue-400" id="total-clicks">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Energy Bar -->
+                                <div class="mb-6">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div class="flex items-center space-x-2">
+                                            <i data-lucide="bolt" class="icon text-yellow-400"></i>
+                                            <span>Énergie</span>
+                                        </div>
+                                        <span class="text-sm font-mono" id="energy-display">100/100</span>
+                                    </div>
+                                    <div class="energy-bar">
+                                        <div class="energy-bar-fill" id="energy-fill" style="width: 100%;"></div>
+                                    </div>
+                                    <div class="text-xs text-gray-400">
+                                        Régénération: <span id="energy-regen">1</span>/min
+                                    </div>
+                                </div>
+
+                                <!-- Click Button -->
+                                <div class="click-area">
+                                    <button class="click-button" id="click-btn" onclick="performClick()">
+                                        <div class="click-button-content">
+                                            <i data-lucide="zap" class="icon-xl"></i>
+                                            <span class="click-text">CLIQUER</span>
+                                            <span class="click-power" id="click-power-display">+0.1 tokens</span>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <!-- Auto Mining Status -->
+                                <div id="auto-mining-status" class="hidden" style="background: rgba(136, 85, 255, 0.1); border: 1px solid rgba(136, 85, 255, 0.3); border-radius: 8px; padding: 12px; margin-top: 24px;">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <i data-lucide="cog" class="icon text-purple-400" style="animation: spin 2s linear infinite;"></i>
+                                            <span class="text-purple-400">Auto Mining Actif</span>
+                                        </div>
+                                        <span class="text-purple-400 font-mono" id="auto-mining-rate">+0.00/min</span>
+                                    </div>
+                                </div>
+
+                                <!-- Transfer Button -->
+                                <button id="transfer-btn" class="cyber-button" onclick="transferBalance()" style="width: 100%; margin-top: 24px; display: none;">
+                                    <i data-lucide="arrow-up" class="icon"></i>
+                                    <span style="margin-left: 8px;">Transférer vers le Solde Principal</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upgrades -->
+                    <div>
+                        <div class="cyber-card">
+                            <div class="p-6">
+                                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                                    <i data-lucide="sparkles" class="icon text-purple-400"></i>
+                                    <span style="margin-left: 8px;">Améliorations</span>
+                                </h3>
+                                
+                                <div id="upgrades-list">
+                                    <!-- Energy Regeneration -->
+                                    <div class="upgrade-card">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center space-x-2">
+                                                <i data-lucide="bolt" class="icon text-yellow-400"></i>
+                                                <span class="font-semibold text-white text-sm">Energy Regeneration</span>
+                                            </div>
+                                            <span class="badge text-xs">Niveau 0</span>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mb-3">Increase energy regeneration rate</p>
+                                        <div class="flex items-center justify-between">
+                                            <div class="text-xs">
+                                                <div class="text-cyber-green font-mono">50 tokens</div>
+                                                <div class="text-gray-400">+1 /min</div>
+                                            </div>
+                                            <button class="cyber-button text-xs" onclick="buyUpgrade('energy_regen')">
+                                                Acheter
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Double Click -->
+                                    <div class="upgrade-card">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center space-x-2">
+                                                <i data-lucide="mouse-pointer" class="icon text-blue-400"></i>
+                                                <span class="font-semibold text-white text-sm">Double Click Power</span>
+                                            </div>
+                                            <span class="badge text-xs">Niveau 0</span>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mb-3">Increase tokens earned per click</p>
+                                        <div class="flex items-center justify-between">
+                                            <div class="text-xs">
+                                                <div class="text-cyber-green font-mono">100 tokens</div>
+                                                <div class="text-gray-400">+1 puissance</div>
+                                            </div>
+                                            <button class="cyber-button text-xs" onclick="buyUpgrade('double_click')">
+                                                Acheter
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Auto Mining -->
+                                    <div class="upgrade-card">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center space-x-2">
+                                                <i data-lucide="cog" class="icon text-purple-400"></i>
+                                                <span class="font-semibold text-white text-sm">Auto Mining Bot</span>
+                                            </div>
+                                            <span class="badge text-xs">Niveau 0</span>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mb-3">Automatically earn tokens over time</p>
+                                        <div class="flex items-center justify-between">
+                                            <div class="text-xs">
+                                                <div class="text-cyber-green font-mono">200 tokens</div>
+                                                <div class="text-gray-400">+0.5 /min auto</div>
+                                            </div>
+                                            <button class="cyber-button text-xs" onclick="buyUpgrade('auto_mining')">
+                                                Acheter
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Max Energy Boost -->
+                                    <div class="upgrade-card">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center space-x-2">
+                                                <i data-lucide="gauge" class="icon text-orange-400"></i>
+                                                <span class="font-semibold text-white text-sm">Max Energy Boost</span>
+                                            </div>
+                                            <span class="badge text-xs">Niveau 0</span>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mb-3">Increase maximum energy capacity by 500</p>
+                                        <div class="flex items-center justify-between">
+                                            <div class="text-xs">
+                                                <div class="text-cyber-green font-mono">300 tokens</div>
+                                                <div class="text-gray-400">+500 énergie max</div>
+                                            </div>
+                                            <button class="cyber-button text-xs" onclick="buyUpgrade('max_energy')">
+                                                Acheter
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Tab -->
+            <div id="tab-tasks" class="tab-content">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-white">Tâches Disponibles</h2>
+                    <span class="badge">4 disponibles</span>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="cyber-card">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="font-semibold text-white">Join Telegram Channel</h3>
+                                    <p class="text-gray-400 text-sm">Join our official Telegram channel and stay updated</p>
+                                    <div class="flex items-center mt-2 space-x-2">
+                                        <i data-lucide="coins" class="icon text-cyber-green"></i>
+                                        <span class="text-cyber-green font-mono">+10.0</span>
+                                    </div>
+                                </div>
+                                <button class="cyber-button" onclick="completeTask('telegram')">
+                                    Compléter
+                                    <i data-lucide="chevron-right" class="icon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cyber-card">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="font-semibold text-white">Daily Login Bonus</h3>
+                                    <p class="text-gray-400 text-sm">Login daily to claim your bonus</p>
+                                    <div class="flex items-center mt-2 space-x-2">
+                                        <i data-lucide="coins" class="icon text-cyber-green"></i>
+                                        <span class="text-cyber-green font-mono">+5.0</span>
+                                    </div>
+                                </div>
+                                <button class="cyber-button" onclick="completeTask('daily')">
+                                    Compléter
+                                    <i data-lucide="chevron-right" class="icon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cyber-card">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="font-semibold text-white">Follow Twitter</h3>
+                                    <p class="text-gray-400 text-sm">Follow our Twitter account for updates</p>
+                                    <div class="flex items-center mt-2 space-x-2">
+                                        <i data-lucide="coins" class="icon text-cyber-green"></i>
+                                        <span class="text-cyber-green font-mono">+15.0</span>
+                                    </div>
+                                </div>
+                                <button class="cyber-button" onclick="completeTask('twitter')">
+                                    Compléter
+                                    <i data-lucide="chevron-right" class="icon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cyber-card">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="font-semibold text-white">Refer a Friend</h3>
+                                    <p class="text-gray-400 text-sm">Invite friends and earn bonus</p>
+                                    <div class="flex items-center mt-2 space-x-2">
+                                        <i data-lucide="coins" class="icon text-cyber-green"></i>
+                                        <span class="text-cyber-green font-mono">+50.0</span>
+                                    </div>
+                                </div>
+                                <button class="cyber-button" onclick="completeTask('referral')">
+                                    Compléter
+                                    <i data-lucide="chevron-right" class="icon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shop Tab -->
+            <div id="tab-shop" class="tab-content">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-white">Boutique Mining</h2>
+                    <select class="cyber-button" style="background: rgba(26, 26, 26, 0.8); border: 1px solid var(--cyber-border); color: var(--cyber-text);">
+                        <option value="all">Toutes catégories</option>
+                        <option value="equipment">Équipements</option>
+                        <option value="cloud_mining">Cloud Mining</option>
+                        <option value="contracts">Contrats</option>
+                    </select>
+                </div>
+                
+                <div class="products-grid">
+                    <!-- USB ASIC Miner -->
+                    <div class="cyber-card product-card">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1695903213536-33162a52246d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85" alt="USB ASIC Miner">
+                            <div class="product-overlay">
+                                <span class="badge">equipment</span>
+                                <span class="badge badge-success" style="margin-top: 8px;">ABORDABLE</span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-semibold text-white mb-2">USB ASIC Miner</h3>
+                            <p class="text-gray-400 text-sm mb-4">Mini ASIC miner perfect for beginners - 330 MH/s</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold text-cyber-green">$49.99</span>
+                                <button class="cyber-button">
+                                    <i data-lucide="shopping-cart" class="icon"></i>
+                                    <span style="margin-left: 8px;">Acheter</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GTX 1660 Super -->
+                    <div class="cyber-card product-card">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1634672350437-f9632adc9c3f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwzfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85" alt="GTX 1660 Super">
+                            <div class="product-overlay">
+                                <span class="badge">equipment</span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-semibold text-white mb-2">GTX 1660 Super</h3>
+                            <p class="text-gray-400 text-sm mb-4">Budget-friendly GPU perfect for crypto mining</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold text-cyber-green">$199.99</span>
+                                <button class="cyber-button">
+                                    <i data-lucide="shopping-cart" class="icon"></i>
+                                    <span style="margin-left: 8px;">Acheter</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Starter Cloud Mining -->
+                    <div class="cyber-card product-card">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1707075891545-41b982930351?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85" alt="Starter Cloud Mining">
+                            <div class="product-overlay">
+                                <span class="badge">cloud_mining</span>
+                                <span class="badge badge-success" style="margin-top: 8px;">ABORDABLE</span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-semibold text-white mb-2">Starter Cloud Mining</h3>
+                            <p class="text-gray-400 text-sm mb-4">Perfect for beginners - 30 days Bitcoin cloud mining</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold text-cyber-green">$29.99</span>
+                                <button class="cyber-button">
+                                    <i data-lucide="shopping-cart" class="icon"></i>
+                                    <span style="margin-left: 8px;">Acheter</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Cloud Mining -->
+                    <div class="cyber-card product-card">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1707075891545-41b982930351?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85" alt="Basic Cloud Mining">
+                            <div class="product-overlay">
+                                <span class="badge">cloud_mining</span>
+                                <span class="badge badge-success" style="margin-top: 8px;">ABORDABLE</span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-semibold text-white mb-2">Basic Cloud Mining</h3>
+                            <p class="text-gray-400 text-sm mb-4">3 months Bitcoin cloud mining contract</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold text-cyber-green">$99.99</span>
+                                <button class="cyber-button">
+                                    <i data-lucide="shopping-cart" class="icon"></i>
+                                    <span style="margin-left: 8px;">Acheter</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mini Mining Contract -->
+                    <div class="cyber-card product-card">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1645273603365-659e5622ea78?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHw0fHxmdXR1cmlzdGljJTIwZGFya3xlbnwwfHx8fDE3NTY5Mjc1MTN8MA&ixlib=rb-4.1.0&q=85" alt="Mini Mining Contract">
+                            <div class="product-overlay">
+                                <span class="badge">contracts</span>
+                                <span class="badge badge-success" style="margin-top: 8px;">ABORDABLE</span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-semibold text-white mb-2">Mini Mining Contract</h3>
+                            <p class="text-gray-400 text-sm mb-4">Small mining contract perfect for testing</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold text-cyber-green">$99.99</span>
+                                <button class="cyber-button">
+                                    <i data-lucide="shopping-cart" class="icon"></i>
+                                    <span style="margin-left: 8px;">Acheter</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Premium Options -->
+                    <div class="cyber-card product-card">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1695903213536-33162a52246d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85" alt="ASIC S19 Pro">
+                            <div class="product-overlay">
+                                <span class="badge">equipment</span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-semibold text-white mb-2">ASIC Miner S19 Pro</h3>
+                            <p class="text-gray-400 text-sm mb-4">High-performance Bitcoin mining hardware with 110 TH/s</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold text-cyber-green">$2,500</span>
+                                <button class="cyber-button">
+                                    <i data-lucide="shopping-cart" class="icon"></i>
+                                    <span style="margin-left: 8px;">Acheter</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deposits Tab -->
+            <div id="tab-deposits" class="tab-content">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-white">Dépôts & Bonus</h2>
+                    <button class="cyber-button" onclick="showDepositModal()">
+                        <i data-lucide="plus" class="icon"></i>
+                        <span style="margin-left: 8px;">Nouveau Dépôt</span>
+                    </button>
+                </div>
+
+                <div class="cyber-card">
+                    <div class="p-6">
+                        <h3 class="font-semibold text-white mb-4">Informations de Dépôt</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm text-gray-400">Payeer</p>
+                                <p class="text-cyber-green font-mono">P1112145219</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">FaucetPay</p>
+                                <p class="text-cyber-green font-mono">maximlprive90@gmail.com</p>
+                            </div>
+                            <div class="text-center p-4" style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px;">
+                                <p class="text-cyber-green font-bold">🎉 BONUS DE 17% SUR TOUS LES DÉPÔTS ! 🎉</p>
+                                <p class="text-sm text-gray-400">Votre dépôt sera automatiquement majoré de 17%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cyber-card mt-8">
+                    <div class="p-6">
+                        <h3 class="font-semibold text-white mb-4">Historique des Dépôts</h3>
+                        <div class="text-center py-8">
+                            <p class="text-gray-400">Aucun dépôt pour le moment</p>
+                            <p class="text-sm text-gray-400">Effectuez votre premier dépôt pour commencer !</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral Tab -->
+            <div id="tab-referral" class="tab-content">
+                <div class="text-center">
+                    <h2 class="text-xl font-bold text-white mb-4">Programme de Parrainage</h2>
+                    <p class="text-gray-400 mb-8">Invitez vos amis et gagnez 50 tokens par parrainage!</p>
+                    
+                    <div class="cyber-card" style="max-width: 500px; margin: 0 auto;">
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-sm text-gray-400 mb-2">Votre Code de Parrainage</p>
+                                    <div class="flex items-center space-x-2">
+                                        <input value="ABC12345" readonly class="cyber-button" style="flex: 1; background: rgba(26, 26, 26, 0.8); border: 1px solid var(--cyber-border); color: var(--cyber-text); padding: 8px;">
+                                        <button class="cyber-button" onclick="copyReferralCode()">
+                                            <i data-lucide="copy" class="icon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px; padding: 16px; margin-top: 16px;">
+                                    <div class="flex items-center justify-between">
+                                        <span>Total des gains de parrainage:</span>
+                                        <span class="text-cyber-green font-bold">0 tokens</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            energy: 100,
+            maxEnergy: 100,
+            energyRegenRate: 1,
+            clickPower: 1,
+            autoMiningRate: 0.0,
+            totalClicks: 0,
+            gameBalance: 0.0,
+            mainBalance: 0.0,
+            bonusBalance: 0.0
+        };
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Countdown Timer
+        function updateCountdown() {
+            const targetDate = new Date('2026-03-29T00:00:00');
+            const now = new Date();
+            const difference = targetDate - now;
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+
+            document.getElementById('days').textContent = days;
+            document.getElementById('hours').textContent = hours;
+            document.getElementById('minutes').textContent = minutes;
+        }
+
+        // Update countdown every minute
+        setInterval(updateCountdown, 60000);
+        updateCountdown();
+
+        // Tab Management
+        function showTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all triggers
+            const triggers = document.querySelectorAll('.tab-trigger');
+            triggers.forEach(trigger => trigger.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Game Functions
+        function updateDisplay() {
+            document.getElementById('energy-display').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
+            document.getElementById('energy-fill').style.width = `${(gameState.energy / gameState.maxEnergy) * 100}%`;
+            document.getElementById('energy-regen').textContent = gameState.energyRegenRate;
+            document.getElementById('game-balance-display').textContent = gameState.gameBalance.toFixed(3);
+            document.getElementById('game-balance').textContent = gameState.gameBalance.toFixed(3);
+            document.getElementById('total-clicks').textContent = gameState.totalClicks;
+            document.getElementById('click-power-display').textContent = `+${(gameState.clickPower * 0.1).toFixed(1)} tokens`;
+            
+            // Update main stats
+            document.getElementById('main-balance').textContent = gameState.mainBalance.toFixed(2);
+            document.getElementById('bonus-balance').textContent = gameState.bonusBalance.toFixed(2);
+            document.getElementById('stats-balance').textContent = gameState.mainBalance.toFixed(2);
+            document.getElementById('stats-bonus').textContent = gameState.bonusBalance.toFixed(2);
+            document.getElementById('stats-earned').textContent = (gameState.mainBalance + gameState.bonusBalance).toFixed(2);
+            document.getElementById('stats-game').textContent = gameState.gameBalance.toFixed(3);
+            
+            // Update click button state
+            const clickBtn = document.getElementById('click-btn');
+            clickBtn.disabled = gameState.energy < 1;
+            
+            // Show transfer button if game balance > 0
+            const transferBtn = document.getElementById('transfer-btn');
+            transferBtn.style.display = gameState.gameBalance > 0 ? 'block' : 'none';
+            
+            // Show auto mining status
+            const autoMiningStatus = document.getElementById('auto-mining-status');
+            if (gameState.autoMiningRate > 0) {
+                autoMiningStatus.classList.remove('hidden');
+                document.getElementById('auto-mining-rate').textContent = `+${gameState.autoMiningRate.toFixed(2)}/min`;
+            } else {
+                autoMiningStatus.classList.add('hidden');
+            }
+        }
+
+        function performClick() {
+            if (gameState.energy < 1) return;
+            
+            gameState.energy -= 1;
+            gameState.totalClicks += 1;
+            gameState.gameBalance += gameState.clickPower * 0.1;
+            
+            // Create click animation
+            const clickBtn = document.getElementById('click-btn');
+            const rect = clickBtn.getBoundingClientRect();
+            const animation = document.createElement('div');
+            animation.className = 'click-animation';
+            animation.textContent = `+${(gameState.clickPower * 0.1).toFixed(3)}`;
+            animation.style.left = `${rect.width / 2}px`;
+            animation.style.top = `${rect.height / 2}px`;
+            clickBtn.appendChild(animation);
+            
+            setTimeout(() => {
+                if (animation.parentNode) {
+                    animation.parentNode.removeChild(animation);
+                }
+            }, 1000);
+            
+            updateDisplay();
+            showNotification(`+${(gameState.clickPower * 0.1).toFixed(3)} tokens gagnés!`);
+        }
+
+        function transferBalance() {
+            if (gameState.gameBalance <= 0) return;
+            
+            const transferred = gameState.gameBalance;
+            gameState.mainBalance += transferred;
+            gameState.gameBalance = 0;
+            
+            updateDisplay();
+            showNotification(`${transferred.toFixed(3)} tokens transférés vers votre solde principal!`);
+        }
+
+        function buyUpgrade(type) {
+            let price, effect;
+            
+            switch(type) {
+                case 'energy_regen':
+                    price = 50;
+                    effect = () => {
+                        gameState.energyRegenRate += 1;
+                        gameState.maxEnergy += 10;
+                    };
+                    break;
+                case 'double_click':
+                    price = 100;
+                    effect = () => {
+                        gameState.clickPower += 1;
+                    };
+                    break;
+                case 'auto_mining':
+                    price = 200;
+                    effect = () => {
+                        gameState.autoMiningRate += 0.5;
+                    };
+                    break;
+                case 'max_energy':
+                    price = 300;
+                    effect = () => {
+                        gameState.maxEnergy += 500;
+                        gameState.energy = Math.min(gameState.energy + 500, gameState.maxEnergy);
+                    };
+                    break;
+                default:
+                    return;
+            }
+            
+            if (gameState.mainBalance < price) {
+                showNotification('Solde insuffisant!', 'error');
+                return;
+            }
+            
+            gameState.mainBalance -= price;
+            effect();
+            updateDisplay();
+            showNotification('Amélioration achetée avec succès!');
+        }
+
+        function completeTask(taskType) {
+            let reward;
+            let taskName;
+            
+            switch(taskType) {
+                case 'telegram':
+                    reward = 10;
+                    taskName = 'Telegram';
+                    break;
+                case 'daily':
+                    reward = 5;
+                    taskName = 'Daily Login';
+                    break;
+                case 'twitter':
+                    reward = 15;
+                    taskName = 'Twitter';
+                    break;
+                case 'referral':
+                    reward = 50;
+                    taskName = 'Referral';
+                    break;
+                default:
+                    return;
+            }
+            
+            gameState.mainBalance += reward;
+            updateDisplay();
+            showNotification(`Tâche ${taskName} complétée! +${reward} tokens`);
+        }
+
+        function copyReferralCode() {
+            navigator.clipboard.writeText('ABC12345');
+            showNotification('Code de parrainage copié!');
+        }
+
+        function showDepositModal() {
+            showNotification('Fonctionnalité de dépôt sera bientôt disponible!');
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'error' ? 'rgba(255, 0, 0, 0.9)' : 'rgba(0, 255, 136, 0.9)'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                z-index: 1000;
+                font-family: 'Roboto Mono', monospace;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Energy regeneration
+        function regenerateEnergy() {
+            if (gameState.energy < gameState.maxEnergy) {
+                gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + (gameState.energyRegenRate / 60));
+                updateDisplay();
+            }
+        }
+
+        // Auto mining
+        function autoMining() {
+            if (gameState.autoMiningRate > 0) {
+                gameState.gameBalance += gameState.autoMiningRate / 60;
+                updateDisplay();
+            }
+        }
+
+        // Start intervals
+        setInterval(regenerateEnergy, 1000); // Every second
+        setInterval(autoMining, 1000); // Every second
+
+        // Initial display update
+        updateDisplay();
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
