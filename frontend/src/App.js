@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
@@ -23,7 +23,16 @@ import {
   Hash,
   Wallet,
   Clock,
-  CheckCircle
+  CheckCircle,
+  MousePointer,
+  Bolt,
+  Cog,
+  ArrowUp,
+  Play,
+  Gauge,
+  Sparkles,
+  Target,
+  Zap as ZapIcon
 } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
@@ -33,6 +42,7 @@ import { Input } from "./components/ui/input";
 import { Label } from "./components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
+import { Progress } from "./components/ui/progress";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -165,6 +175,310 @@ const Header = () => {
         </div>
       </div>
     </header>
+  );
+};
+
+const ClickGame = () => {
+  const { token, fetchUser } = useAuth();
+  const [gameStatus, setGameStatus] = useState(null);
+  const [upgrades, setUpgrades] = useState([]);
+  const [userUpgrades, setUserUpgrades] = useState([]);
+  const [clickAnimation, setClickAnimation] = useState(null);
+  const gameInterval = useRef(null);
+  const autoMiningInterval = useRef(null);
+  
+  useEffect(() => {
+    fetchGameData();
+    
+    // Update energy every 30 seconds
+    gameInterval.current = setInterval(fetchGameStatus, 30000);
+    
+    return () => {
+      if (gameInterval.current) clearInterval(gameInterval.current);
+      if (autoMiningInterval.current) clearInterval(autoMiningInterval.current);
+    };
+  }, []);
+  
+  useEffect(() => {
+    // Auto mining simulation
+    if (gameStatus && gameStatus.auto_mining_rate > 0) {
+      autoMiningInterval.current = setInterval(() => {
+        setGameStatus(prev => ({
+          ...prev,
+          game_balance: prev.game_balance + (prev.auto_mining_rate / 60) // per second
+        }));
+      }, 1000);
+    }
+    
+    return () => {
+      if (autoMiningInterval.current) clearInterval(autoMiningInterval.current);
+    };
+  }, [gameStatus?.auto_mining_rate]);
+
+  const fetchGameData = async () => {
+    try {
+      const [statusRes, upgradesRes, userUpgradesRes] = await Promise.all([
+        axios.get(`${API}/game/status`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/upgrades`),
+        axios.get(`${API}/upgrades/my`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      
+      setGameStatus(statusRes.data);
+      setUpgrades(upgradesRes.data);
+      setUserUpgrades(userUpgradesRes.data);
+    } catch (error) {
+      console.error('Failed to fetch game data:', error);
+    }
+  };
+
+  const fetchGameStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/game/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setGameStatus(response.data);
+    } catch (error) {
+      console.error('Failed to fetch game status:', error);
+    }
+  };
+
+  const handleClick = async (event) => {
+    if (!gameStatus || gameStatus.energy < 1) return;
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // Show click animation
+    setClickAnimation({ x, y, id: Date.now() });
+    setTimeout(() => setClickAnimation(null), 1000);
+    
+    try {
+      const response = await axios.post(`${API}/game/click`, 
+        { clicks: 1 }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Update local state immediately for better UX
+      setGameStatus(prev => ({
+        ...prev,
+        energy: response.data.energy_remaining,
+        total_clicks: response.data.total_clicks,
+        game_balance: prev.game_balance + response.data.tokens_earned
+      }));
+      
+    } catch (error) {
+      toast.error('Erreur lors du clic');
+    }
+  };
+
+  const buyUpgrade = async (upgradeId) => {
+    try {
+      await axios.post(`${API}/upgrades/${upgradeId}/buy`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success('Amélioration achetée!');
+      await fetchGameData();
+      await fetchUser(); // Update main balance
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de l\'achat');
+    }
+  };
+
+  const transferBalance = async () => {
+    try {
+      const response = await axios.post(`${API}/game/transfer`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success(`${response.data.transferred_amount.toFixed(2)} tokens transférés!`);
+      await fetchGameStatus();
+      await fetchUser();
+    } catch (error) {
+      toast.error('Erreur lors du transfert');
+    }
+  };
+
+  const getUpgradeLevel = (upgradeId) => {
+    const userUpgrade = userUpgrades.find(u => u.upgrade_id === upgradeId);
+    return userUpgrade ? userUpgrade.level : 0;
+  };
+
+  const getUpgradePrice = (upgrade, level) => {
+    return upgrade.base_price * Math.pow(upgrade.price_multiplier, level);
+  };
+
+  if (!gameStatus) return <div className="cyber-loading">Chargement du jeu...</div>;
+
+  const energyPercentage = (gameStatus.energy / gameStatus.max_energy) * 100;
+
+  return (
+    <div className="click-game-container">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Game Area */}
+        <div className="lg:col-span-2">
+          <Card className="cyber-card click-game-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MousePointer className="w-5 h-5 text-cyber-green" />
+                Jeu de Clic - Mining
+              </CardTitle>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm text-gray-400">Solde du Jeu</Label>
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-4 h-4 text-cyber-green" />
+                    <span className="text-xl font-bold text-cyber-green">
+                      {gameStatus.game_balance?.toFixed(3) || '0.000'}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm text-gray-400">Total Clics</Label>
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-blue-400" />
+                    <span className="text-xl font-bold text-blue-400">
+                      {gameStatus.total_clicks || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Energy Bar */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label className="flex items-center gap-2">
+                    <Bolt className="w-4 h-4 text-yellow-400" />
+                    Énergie
+                  </Label>
+                  <span className="text-sm font-mono">
+                    {gameStatus.energy}/{gameStatus.max_energy}
+                  </span>
+                </div>
+                <Progress 
+                  value={energyPercentage} 
+                  className="energy-bar"
+                />
+                <div className="text-xs text-gray-400">
+                  Régénération: {gameStatus.energy_regen_rate}/min
+                </div>
+              </div>
+
+              {/* Click Button */}
+              <div className="click-area">
+                <button
+                  className="click-button"
+                  onClick={handleClick}
+                  disabled={gameStatus.energy < 1}
+                >
+                  <div className="click-button-content">
+                    <ZapIcon className="w-16 h-16" />
+                    <span className="click-text">CLIQUER</span>
+                    <span className="click-power">+{gameStatus.click_power * 0.1} tokens</span>
+                  </div>
+                  
+                  {/* Click Animation */}
+                  {clickAnimation && (
+                    <div 
+                      className="click-animation"
+                      style={{ left: clickAnimation.x, top: clickAnimation.y }}
+                    >
+                      +{(gameStatus.click_power * 0.1).toFixed(3)}
+                    </div>
+                  )}
+                </button>
+              </div>
+
+              {/* Auto Mining Status */}
+              {gameStatus.auto_mining_rate > 0 && (
+                <div className="auto-mining-status">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Cog className="w-4 h-4 text-purple-400 animate-spin" />
+                      <span className="text-purple-400">Auto Mining Actif</span>
+                    </div>
+                    <span className="text-purple-400 font-mono">
+                      +{gameStatus.auto_mining_rate.toFixed(2)}/min
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Transfer Button */}
+              {gameStatus.game_balance > 0 && (
+                <Button 
+                  onClick={transferBalance}
+                  className="cyber-button w-full"
+                >
+                  <ArrowUp className="w-4 h-4 mr-2" />
+                  Transférer vers le Solde Principal
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Upgrades */}
+        <div>
+          <Card className="cyber-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-400" />
+                Améliorations
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {upgrades.map((upgrade) => {
+                const level = getUpgradeLevel(upgrade.id);
+                const price = getUpgradePrice(upgrade, level);
+                const maxed = level >= upgrade.max_level;
+
+                return (
+                  <div key={upgrade.id} className="upgrade-card">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {upgrade.upgrade_type === 'energy_regen' && <Bolt className="w-4 h-4 text-yellow-400" />}
+                        {upgrade.upgrade_type === 'double_click' && <MousePointer className="w-4 h-4 text-blue-400" />}
+                        {upgrade.upgrade_type === 'auto_mining' && <Cog className="w-4 h-4 text-purple-400" />}
+                        <span className="font-semibold text-white text-sm">{upgrade.name}</span>
+                      </div>
+                      <Badge variant="outline" className="cyber-badge text-xs">
+                        Niveau {level}
+                      </Badge>
+                    </div>
+                    
+                    <p className="text-xs text-gray-400 mb-3">{upgrade.description}</p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs">
+                        <div className="text-cyber-green font-mono">
+                          {maxed ? 'MAX' : `${price.toFixed(0)} tokens`}
+                        </div>
+                        <div className="text-gray-400">
+                          +{upgrade.effect_value} {upgrade.upgrade_type === 'energy_regen' ? '/min' : 
+                                                   upgrade.upgrade_type === 'double_click' ? 'puissance' : 
+                                                   '/min auto'}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => buyUpgrade(upgrade.id)}
+                        disabled={maxed}
+                        className="cyber-button text-xs"
+                      >
+                        {maxed ? 'MAX' : 'Acheter'}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -317,22 +631,27 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Tâches</p>
-                  <p className="text-2xl font-bold text-purple-400">{stats.completed_tasks}</p>
+                  <p className="text-sm text-gray-400">Jeu - Solde</p>
+                  <p className="text-2xl font-bold text-purple-400">{stats.game_stats?.game_balance?.toFixed(3) || '0.000'}</p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-purple-400" />
+                <MousePointer className="w-8 h-8 text-purple-400" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="tasks" className="cyber-tabs">
+        <Tabs defaultValue="game" className="cyber-tabs">
           <TabsList className="cyber-tabs-list">
+            <TabsTrigger value="game">Jeu de Clic</TabsTrigger>
             <TabsTrigger value="tasks">Tâches</TabsTrigger>
             <TabsTrigger value="shop">Boutique</TabsTrigger>
             <TabsTrigger value="deposits">Dépôts</TabsTrigger>
             <TabsTrigger value="referral">Parrainage</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="game">
+            <ClickGame />
+          </TabsContent>
 
           <TabsContent value="tasks" className="space-y-4">
             <div className="flex items-center justify-between">
@@ -390,6 +709,9 @@ const Dashboard = () => {
                     <img src={product.image_url} alt={product.name} />
                     <div className="product-overlay">
                       <Badge className="cyber-badge">{product.category}</Badge>
+                      {product.price < 100 && (
+                        <Badge className="cyber-badge-success mt-2">ABORDABLE</Badge>
+                      )}
                     </div>
                   </div>
                   <CardContent className="p-6">
