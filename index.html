@@ -1341,228 +1341,80 @@
         lucide.createIcons();
 
         // Local Storage Functions
-        function getUsers() {
-            const users = localStorage.getItem(USERS_KEY);
-            return users ? JSON.parse(users) : [];
-        }
-
-        function saveUsers(users) {
-            localStorage.setItem(USERS_KEY, JSON.stringify(users));
-        }
-
-        function getCurrentUser() {
-            const user = localStorage.getItem(CURRENT_USER_KEY);
-            return user ? JSON.parse(user) : null;
-        }
-
-        function saveCurrentUser(user) {
-            localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-            currentUser = user;
+        function getUserId() {
+            let userId = localStorage.getItem(USER_ID_KEY);
+            if (!userId) {
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+                localStorage.setItem(USER_ID_KEY, userId);
+            }
+            return userId;
         }
 
         function getGameData() {
             const data = localStorage.getItem(GAME_DATA_KEY);
-            return data ? JSON.parse(data) : gameState;
+            return data ? JSON.parse(data) : null;
         }
 
         function saveGameData() {
             localStorage.setItem(GAME_DATA_KEY, JSON.stringify(gameState));
         }
 
-        // Auth Functions
-        function checkAuth() {
-            currentUser = getCurrentUser();
-            if (!currentUser) {
-                showAuthModal();
-                return false;
-            }
-            loadGameData();
-            return true;
-        }
-
-        function loadGameData() {
-            if (currentUser) {
-                const savedData = getGameData();
-                gameState = { ...gameState, ...savedData };
-                updateDisplay();
-            }
-        }
-        function checkAuth() {
-            if (!authToken) {
-                showAuthModal();
-                return false;
-            }
-            return true;
-        }
-
-        function showAuthModal() {
-            document.getElementById('auth-modal').style.display = 'flex';
-        }
-
-        function hideAuthModal() {
-            document.getElementById('auth-modal').style.display = 'none';
-        }
-
-        function toggleAuthMode() {
-            isLoginMode = !isLoginMode;
-            
-            const title = document.getElementById('auth-title');
-            const subtitle = document.getElementById('auth-subtitle');
-            const submitBtn = document.getElementById('auth-submit');
-            const toggleBtn = document.getElementById('auth-toggle');
-            const usernameField = document.getElementById('username-field');
-            const referralField = document.getElementById('referral-field');
-            const usernameInput = document.getElementById('username');
-            
-            if (isLoginMode) {
-                title.textContent = 'Connexion';
-                subtitle.textContent = 'Connectez-vous à votre compte';
-                submitBtn.textContent = 'Se connecter';
-                toggleBtn.textContent = 'Créer un compte';
-                usernameField.classList.add('hidden');
-                referralField.classList.add('hidden');
-                usernameInput.required = false;
-            } else {
-                title.textContent = 'Inscription';
-                subtitle.textContent = 'Créez votre compte mAInet';
-                submitBtn.textContent = 'S\'inscrire';
-                toggleBtn.textContent = 'Déjà inscrit ? Se connecter';
-                usernameField.classList.remove('hidden');
-                referralField.classList.remove('hidden');
-                usernameInput.required = true;
-            }
-        }
-
-        function showAuthModal() {
-            document.getElementById('auth-modal').style.display = 'flex';
-        }
-
-        function hideAuthModal() {
-            document.getElementById('auth-modal').style.display = 'none';
-        }
-
-        function toggleAuthMode() {
-            isLoginMode = !isLoginMode;
-            
-            const title = document.getElementById('auth-title');
-            const subtitle = document.getElementById('auth-subtitle');
-            const submitBtn = document.getElementById('auth-submit');
-            const toggleBtn = document.getElementById('auth-toggle');
-            const usernameField = document.getElementById('username-field');
-            const referralField = document.getElementById('referral-field');
-            const usernameInput = document.getElementById('username');
-            
-            if (isLoginMode) {
-                title.textContent = 'Connexion';
-                subtitle.textContent = 'Connectez-vous à votre compte';
-                submitBtn.textContent = 'Se connecter';
-                toggleBtn.textContent = 'Créer un compte';
-                usernameField.classList.add('hidden');
-                referralField.classList.add('hidden');
-                usernameInput.required = false;
-            } else {
-                title.textContent = 'Inscription';
-                subtitle.textContent = 'Créez votre compte mAInet';
-                submitBtn.textContent = 'S\'inscrire';
-                toggleBtn.textContent = 'Déjà inscrit ? Se connecter';
-                usernameField.classList.remove('hidden');
-                referralField.classList.remove('hidden');
-                usernameInput.required = true;
-            }
-        }
-
-        function handleAuth(event) {
-            event.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const username = document.getElementById('username').value;
-            const referralCode = document.getElementById('referral-code').value;
-            
-            const users = getUsers();
-            
-            if (isLoginMode) {
-                // Login
-                const user = users.find(u => u.email === email && u.password === password);
-                if (user) {
-                    saveCurrentUser(user);
-                    showNotification('Connexion réussie!');
-                    hideAuthModal();
-                    loadGameData();
-                    updateDisplay();
-                } else {
-                    showNotification('Identifiants invalides', 'error');
-                }
-            } else {
-                // Register
-                const existingUser = users.find(u => u.email === email || u.username === username);
-                if (existingUser) {
-                    showNotification('Utilisateur déjà existant', 'error');
-                    return;
-                }
-                
-                const newUser = {
-                    id: Date.now().toString(),
-                    email: email,
-                    username: username,
-                    password: password,
-                    referralCode: generateReferralCode(),
-                    referredBy: referralCode,
-                    createdAt: new Date().toISOString()
-                };
-                
-                users.push(newUser);
-                saveUsers(users);
-                saveCurrentUser(newUser);
-                
-                // Give referral bonus
-                if (referralCode) {
-                    const referrer = users.find(u => u.referralCode === referralCode);
-                    if (referrer) {
-                        gameState.bonusBalance += 50;
-                        showNotification('Bonus de parrainage reçu!');
-                    }
-                }
-                
-                showNotification('Inscription réussie!');
-                hideAuthModal();
-                initializeGameData();
-                updateDisplay();
-            }
-        }
-
         function generateReferralCode() {
             return Math.random().toString(36).substring(2, 10).toUpperCase();
         }
 
-        function initializeGameData() {
-            gameState = {
-                energy: 100,
-                maxEnergy: 100,
-                energyRegenRate: 1,
-                clickPower: 1,
-                autoMiningRate: 0.0,
-                totalClicks: 0,
-                gameBalance: 0.0,
-                mainBalance: 100.0, // Starting bonus
-                bonusBalance: 0.0,
-                upgrades: {
-                    energy_regen: 0,
-                    double_click: 0,
-                    auto_mining: 0,
-                    max_energy: 0
-                },
-                completedTasks: []
+        // Auto-initialize user and game
+        function initializeGame() {
+            const userId = getUserId();
+            
+            // Create auto user
+            currentUser = {
+                id: userId,
+                username: 'Joueur' + userId.slice(-4),
+                referralCode: generateReferralCode(),
+                createdAt: new Date().toISOString()
             };
+            
+            // Load existing game data or create new
+            const savedData = getGameData();
+            if (savedData) {
+                gameState = { ...gameState, ...savedData };
+                // Update energy based on time passed
+                updateEnergyFromTime();
+            } else {
+                // First time - show welcome message
+                setTimeout(() => {
+                    showNotification('🎉 Bienvenue sur mAInet! Vous commencez avec 100 tokens bonus!');
+                }, 1000);
+            }
+            
+            updateDisplay();
             saveGameData();
         }
 
-        function logout() {
-            localStorage.removeItem(CURRENT_USER_KEY);
-            localStorage.removeItem(GAME_DATA_KEY);
-            currentUser = null;
-            showAuthModal();
-            showNotification('Déconnexion réussie');
+        function updateEnergyFromTime() {
+            if (gameState.lastEnergyUpdate) {
+                const timePassed = (Date.now() - gameState.lastEnergyUpdate) / 60000; // minutes
+                const energyToAdd = Math.floor(timePassed * gameState.energyRegenRate);
+                
+                if (energyToAdd > 0) {
+                    gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + energyToAdd);
+                }
+                
+                // Auto mining rewards
+                if (gameState.autoMiningRate > 0) {
+                    const autoTokens = timePassed * gameState.autoMiningRate;
+                    gameState.gameBalance += autoTokens;
+                    
+                    if (autoTokens > 0.1) {
+                        setTimeout(() => {
+                            showNotification(`🤖 Auto mining: +${autoTokens.toFixed(2)} tokens gagnés pendant votre absence!`);
+                        }, 2000);
+                    }
+                }
+            }
+            
+            gameState.lastEnergyUpdate = Date.now();
         }
 
         // Game Functions (Local Storage)
