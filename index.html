@@ -1795,7 +1795,6 @@
             event.target.classList.add('active');
         }
 
-        // Game Functions (Updated to work without API when needed)
         function updateDisplay() {
             document.getElementById('energy-display').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
             document.getElementById('energy-fill').style.width = `${(gameState.energy / gameState.maxEnergy) * 100}%`;
@@ -1815,20 +1814,48 @@
             
             // Update click button state
             const clickBtn = document.getElementById('click-btn');
-            clickBtn.disabled = gameState.energy < 1;
+            if (clickBtn) {
+                clickBtn.disabled = gameState.energy < 1;
+            }
             
             // Show transfer button if game balance > 0
             const transferBtn = document.getElementById('transfer-btn');
-            transferBtn.style.display = gameState.gameBalance > 0 ? 'block' : 'none';
+            if (transferBtn) {
+                transferBtn.style.display = gameState.gameBalance > 0 ? 'block' : 'none';
+            }
             
             // Show auto mining status
             const autoMiningStatus = document.getElementById('auto-mining-status');
-            if (gameState.autoMiningRate > 0) {
-                autoMiningStatus.classList.remove('hidden');
-                document.getElementById('auto-mining-rate').textContent = `+${gameState.autoMiningRate.toFixed(2)}/min`;
-            } else {
-                autoMiningStatus.classList.add('hidden');
+            if (autoMiningStatus) {
+                if (gameState.autoMiningRate > 0) {
+                    autoMiningStatus.classList.remove('hidden');
+                    const rateElement = document.getElementById('auto-mining-rate');
+                    if (rateElement) {
+                        rateElement.textContent = `+${gameState.autoMiningRate.toFixed(2)}/min`;
+                    }
+                } else {
+                    autoMiningStatus.classList.add('hidden');
+                }
             }
+            
+            // Update referral code if user is logged in
+            if (currentUser && currentUser.referralCode) {
+                const referralDisplay = document.getElementById('referral-code-display');
+                if (referralDisplay) {
+                    referralDisplay.value = currentUser.referralCode;
+                }
+            }
+            
+            // Update upgrade levels
+            updateUpgradeDisplay();
+        }
+
+        function updateUpgradeDisplay() {
+            const upgradeTypes = ['energy_regen', 'double_click', 'auto_mining', 'max_energy'];
+            upgradeTypes.forEach(type => {
+                const level = gameState.upgrades[type] || 0;
+                // You can add code here to update upgrade buttons with current levels
+            });
         }
 
         function performClickAPI() {
