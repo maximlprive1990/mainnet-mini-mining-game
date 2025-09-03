@@ -499,6 +499,9 @@ async def buy_upgrade(upgrade_id: str, current_user: User = Depends(get_current_
         user_game.click_power += upgrade_obj.effect_value
     elif upgrade_obj.upgrade_type == UpgradeType.AUTO_MINING:
         user_game.auto_mining_rate += upgrade_obj.effect_value
+    elif upgrade_obj.upgrade_type == UpgradeType.MAX_ENERGY:
+        user_game.max_energy += upgrade_obj.effect_value
+        user_game.energy = min(user_game.energy + upgrade_obj.effect_value, user_game.max_energy)  # Also add current energy
     
     await db.user_games.update_one(
         {"user_id": current_user.id},
