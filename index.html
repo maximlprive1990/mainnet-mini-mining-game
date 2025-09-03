@@ -1768,7 +1768,7 @@
             event.target.classList.add('active');
         }
 
-        // Game Functions
+        // Game Functions (Updated to work without API when needed)
         function updateDisplay() {
             document.getElementById('energy-display').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
             document.getElementById('energy-fill').style.width = `${(gameState.energy / gameState.maxEnergy) * 100}%`;
