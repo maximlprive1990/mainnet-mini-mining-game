@@ -705,6 +705,15 @@ async def init_sample_data():
             price_multiplier=2.0,
             effect_value=0.5,  # +0.5 tokens per minute
             max_level=10
+        ),
+        Upgrade(
+            name="Max Energy Boost",
+            description="Increase maximum energy capacity by 500",
+            upgrade_type=UpgradeType.MAX_ENERGY,
+            base_price=300.0,
+            price_multiplier=2.5,
+            effect_value=500.0,  # +500 max energy
+            max_level=5
         )
     ]
     
