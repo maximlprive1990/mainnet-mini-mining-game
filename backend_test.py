@@ -450,6 +450,7 @@ def main():
         ("Initialize Sample Data", tester.test_init_sample_data),
         ("Get All Products", tester.test_get_products),
         ("Get Products by Category", tester.test_get_products_by_category),
+        ("Check Affordable Products", tester.test_affordable_products),
         ("Get All Tasks", tester.test_get_tasks),
         ("Complete Task", tester.test_complete_task),
         ("Get My Tasks", tester.test_get_my_tasks),
@@ -457,6 +458,15 @@ def main():
         ("Get My Deposits", tester.test_get_my_deposits),
         ("Get User Stats", tester.test_get_stats),
         ("Test Referral System", tester.test_referral_system),
+        # NEW GAME FUNCTIONALITY TESTS
+        ("Get Game Status", tester.test_game_status),
+        ("Game Click Action", tester.test_game_click),
+        ("Game Multiple Clicks", tester.test_game_multiple_clicks),
+        ("Game Click No Energy", tester.test_game_click_no_energy),
+        ("Transfer Game Balance", tester.test_game_transfer_balance),
+        ("Get All Upgrades", tester.test_get_upgrades),
+        ("Get My Upgrades", tester.test_get_my_upgrades),
+        ("Buy Upgrade", tester.test_buy_upgrade),
     ]
     
     failed_tests = []
