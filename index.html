@@ -1439,6 +1439,12 @@
             const username = document.getElementById('username').value;
             const referralCode = document.getElementById('referral-code').value;
             
+            // Show loading state
+            const submitBtn = document.getElementById('auth-submit');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Chargement...';
+            submitBtn.disabled = true;
+            
             try {
                 let response;
                 
@@ -1447,7 +1453,9 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json',
                         },
+                        mode: 'cors',
                         body: JSON.stringify({
                             email: email,
                             password: password
@@ -1458,7 +1466,9 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json',
                         },
+                        mode: 'cors',
                         body: JSON.stringify({
                             email: email,
                             username: username,
@@ -1468,22 +1478,46 @@
                     });
                 }
                 
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorMessage;
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.detail || errorData.message || 'Erreur d\'authentification';
+                    } catch {
+                        errorMessage = `Erreur HTTP ${response.status}: ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+                
                 const data = await response.json();
                 
-                if (response.ok) {
-                    authToken = data.token;
-                    localStorage.setItem('token', authToken);
-                    
-                    showNotification(isLoginMode ? 'Connexion réussie!' : 'Inscription réussie!');
-                    hideAuthModal();
-                    await fetchUserData();
-                    await fetchGameData();
-                } else {
-                    showNotification(data.detail || 'Erreur d\'authentification', 'error');
-                }
+                authToken = data.token;
+                localStorage.setItem('token', authToken);
+                
+                showNotification(isLoginMode ? 'Connexion réussie!' : 'Inscription réussie!');
+                hideAuthModal();
+                await fetchUserData();
+                await fetchGameData();
+                
             } catch (error) {
                 console.error('Auth error:', error);
-                showNotification('Erreur de connexion au serveur', 'error');
+                
+                let errorMessage = 'Erreur de connexion au serveur';
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Impossible de se connecter au serveur. Vérifiez votre connexion internet.';
+                } else if (error.message.includes('CORS')) {
+                    errorMessage = 'Erreur CORS. Le serveur n\'autorise pas les requêtes depuis ce domaine.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showNotification(errorMessage, 'error');
+            } finally {
+                // Reset button state
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
             }
         }
 
