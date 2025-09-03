@@ -1231,7 +1231,66 @@
         </div>
     </div>
 
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="auth-modal">
+        <div class="auth-modal-content">
+            <div class="cyber-card" style="max-width: 400px; margin: 0 auto;">
+                <div class="p-6">
+                    <div class="text-center mb-6">
+                        <div class="cyber-logo" style="justify-content: center; margin-bottom: 16px;">
+                            <i data-lucide="zap" class="icon-xl text-cyber-green"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white" id="auth-title">Connexion</h2>
+                        <p class="text-gray-400" id="auth-subtitle">Connectez-vous à votre compte</p>
+                    </div>
+                    
+                    <form id="auth-form">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Email</label>
+                                <input type="email" id="email" required class="cyber-input w-full" style="width: 100%; padding: 12px; background: rgba(26, 26, 26, 0.8); border: 1px solid var(--cyber-border); color: var(--cyber-text); border-radius: 6px;">
+                            </div>
+                            
+                            <div id="username-field" class="hidden">
+                                <label class="block text-sm text-gray-400 mb-2">Nom d'utilisateur</label>
+                                <input type="text" id="username" class="cyber-input w-full" style="width: 100%; padding: 12px; background: rgba(26, 26, 26, 0.8); border: 1px solid var(--cyber-border); color: var(--cyber-text); border-radius: 6px;">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Mot de passe</label>
+                                <input type="password" id="password" required class="cyber-input w-full" style="width: 100%; padding: 12px; background: rgba(26, 26, 26, 0.8); border: 1px solid var(--cyber-border); color: var(--cyber-text); border-radius: 6px;">
+                            </div>
+                            
+                            <div id="referral-field" class="hidden">
+                                <label class="block text-sm text-gray-400 mb-2">Code de parrainage (optionnel)</label>
+                                <input type="text" id="referral-code" class="cyber-input w-full" style="width: 100%; padding: 12px; background: rgba(26, 26, 26, 0.8); border: 1px solid var(--cyber-border); color: var(--cyber-text); border-radius: 6px;" placeholder="Code de votre parrain">
+                            </div>
+                            
+                            <button type="submit" class="cyber-button w-full" style="width: 100%;" id="auth-submit">
+                                Se connecter
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <button class="cyber-button-ghost" onclick="toggleAuthMode()" id="auth-toggle">
+                            Créer un compte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // API Configuration
+        const API_BASE = 'https://payeer-deposit.preview.emergentagent.com/api';
+        
+        // Auth State
+        let authToken = localStorage.getItem('token');
+        let currentUser = null;
+        let isLoginMode = true;
+        
         // Game State
         let gameState = {
             energy: 100,
