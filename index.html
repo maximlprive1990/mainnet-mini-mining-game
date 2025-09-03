@@ -1805,30 +1805,8 @@
         }
 
         function performClick() {
-            if (gameState.energy < 1) return;
-            
-            gameState.energy -= 1;
-            gameState.totalClicks += 1;
-            gameState.gameBalance += gameState.clickPower * 0.1;
-            
-            // Create click animation
-            const clickBtn = document.getElementById('click-btn');
-            const rect = clickBtn.getBoundingClientRect();
-            const animation = document.createElement('div');
-            animation.className = 'click-animation';
-            animation.textContent = `+${(gameState.clickPower * 0.1).toFixed(3)}`;
-            animation.style.left = `${rect.width / 2}px`;
-            animation.style.top = `${rect.height / 2}px`;
-            clickBtn.appendChild(animation);
-            
-            setTimeout(() => {
-                if (animation.parentNode) {
-                    animation.parentNode.removeChild(animation);
-                }
-            }, 1000);
-            
-            updateDisplay();
-            showNotification(`+${(gameState.clickPower * 0.1).toFixed(3)} tokens gagnés!`);
+            // Call the real API function
+            performClick();
         }
 
         function transferBalance() {
