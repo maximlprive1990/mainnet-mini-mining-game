@@ -1392,7 +1392,53 @@
         // Initialize Lucide icons
         lucide.createIcons();
 
+        // Local Storage Functions
+        function getUsers() {
+            const users = localStorage.getItem(USERS_KEY);
+            return users ? JSON.parse(users) : [];
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        }
+
+        function getCurrentUser() {
+            const user = localStorage.getItem(CURRENT_USER_KEY);
+            return user ? JSON.parse(user) : null;
+        }
+
+        function saveCurrentUser(user) {
+            localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+            currentUser = user;
+        }
+
+        function getGameData() {
+            const data = localStorage.getItem(GAME_DATA_KEY);
+            return data ? JSON.parse(data) : gameState;
+        }
+
+        function saveGameData() {
+            localStorage.setItem(GAME_DATA_KEY, JSON.stringify(gameState));
+        }
+
         // Auth Functions
+        function checkAuth() {
+            currentUser = getCurrentUser();
+            if (!currentUser) {
+                showAuthModal();
+                return false;
+            }
+            loadGameData();
+            return true;
+        }
+
+        function loadGameData() {
+            if (currentUser) {
+                const savedData = getGameData();
+                gameState = { ...gameState, ...savedData };
+                updateDisplay();
+            }
+        }
         function checkAuth() {
             if (!authToken) {
                 showAuthModal();
