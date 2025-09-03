@@ -1526,19 +1526,23 @@
             
             try {
                 const response = await fetch(`${API_BASE}/auth/me`, {
+                    method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
+                        'Authorization': `Bearer ${authToken}`,
+                        'Accept': 'application/json',
+                    },
+                    mode: 'cors'
                 });
                 
                 if (response.ok) {
                     currentUser = await response.json();
                     updateUserDisplay();
                 } else {
-                    throw new Error('Failed to fetch user data');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
+                showNotification('Session expirée, veuillez vous reconnecter', 'error');
                 logout();
             }
         }
@@ -1549,10 +1553,20 @@
             try {
                 const [statsResponse, gameResponse] = await Promise.all([
                     fetch(`${API_BASE}/stats`, {
-                        headers: { 'Authorization': `Bearer ${authToken}` }
+                        method: 'GET',
+                        headers: { 
+                            'Authorization': `Bearer ${authToken}`,
+                            'Accept': 'application/json',
+                        },
+                        mode: 'cors'
                     }),
                     fetch(`${API_BASE}/game/status`, {
-                        headers: { 'Authorization': `Bearer ${authToken}` }
+                        method: 'GET',
+                        headers: { 
+                            'Authorization': `Bearer ${authToken}`,
+                            'Accept': 'application/json',
+                        },
+                        mode: 'cors'
                     })
                 ]);
                 
@@ -1573,10 +1587,13 @@
                     
                     updateDisplay();
                 } else {
-                    throw new Error('Failed to fetch game data');
+                    console.warn('Failed to fetch some data, using default values');
+                    updateDisplay();
                 }
             } catch (error) {
                 console.error('Failed to fetch game data:', error);
+                showNotification('Erreur lors du chargement des données', 'error');
+                updateDisplay(); // Use default values
             }
         }
 
