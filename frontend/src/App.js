@@ -460,7 +460,8 @@ const ClickGame = () => {
                         <div className="text-gray-400">
                           +{upgrade.effect_value} {upgrade.upgrade_type === 'energy_regen' ? '/min' : 
                                                    upgrade.upgrade_type === 'double_click' ? 'puissance' : 
-                                                   '/min auto'}
+                                                   upgrade.upgrade_type === 'auto_mining' ? '/min auto' :
+                                                   upgrade.upgrade_type === 'max_energy' ? 'énergie max' : ''}
                         </div>
                       </div>
                       <Button
