@@ -1485,7 +1485,45 @@
             }
         }
 
-        async function handleAuth(event) {
+        function showAuthModal() {
+            document.getElementById('auth-modal').style.display = 'flex';
+        }
+
+        function hideAuthModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const submitBtn = document.getElementById('auth-submit');
+            const toggleBtn = document.getElementById('auth-toggle');
+            const usernameField = document.getElementById('username-field');
+            const referralField = document.getElementById('referral-field');
+            const usernameInput = document.getElementById('username');
+            
+            if (isLoginMode) {
+                title.textContent = 'Connexion';
+                subtitle.textContent = 'Connectez-vous à votre compte';
+                submitBtn.textContent = 'Se connecter';
+                toggleBtn.textContent = 'Créer un compte';
+                usernameField.classList.add('hidden');
+                referralField.classList.add('hidden');
+                usernameInput.required = false;
+            } else {
+                title.textContent = 'Inscription';
+                subtitle.textContent = 'Créez votre compte mAInet';
+                submitBtn.textContent = 'S\'inscrire';
+                toggleBtn.textContent = 'Déjà inscrit ? Se connecter';
+                usernameField.classList.remove('hidden');
+                referralField.classList.remove('hidden');
+                usernameInput.required = true;
+            }
+        }
+
+        function handleAuth(event) {
             event.preventDefault();
             
             const email = document.getElementById('email').value;
@@ -1493,189 +1531,88 @@
             const username = document.getElementById('username').value;
             const referralCode = document.getElementById('referral-code').value;
             
-            // Show loading state
-            const submitBtn = document.getElementById('auth-submit');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Chargement...';
-            submitBtn.disabled = true;
+            const users = getUsers();
             
-            try {
-                let response;
-                
-                if (isLoginMode) {
-                    response = await fetch(`${API_BASE}/auth/login`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                        },
-                        mode: 'cors',
-                        body: JSON.stringify({
-                            email: email,
-                            password: password
-                        })
-                    });
-                } else {
-                    response = await fetch(`${API_BASE}/auth/register`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                        },
-                        mode: 'cors',
-                        body: JSON.stringify({
-                            email: email,
-                            username: username,
-                            password: password,
-                            referral_code: referralCode || undefined
-                        })
-                    });
-                }
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    let errorMessage;
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        errorMessage = errorData.detail || errorData.message || 'Erreur d\'authentification';
-                    } catch {
-                        errorMessage = `Erreur HTTP ${response.status}: ${response.statusText}`;
-                    }
-                    throw new Error(errorMessage);
-                }
-                
-                const data = await response.json();
-                
-                authToken = data.token;
-                localStorage.setItem('token', authToken);
-                
-                showNotification(isLoginMode ? 'Connexion réussie!' : 'Inscription réussie!');
-                hideAuthModal();
-                await fetchUserData();
-                await fetchGameData();
-                
-            } catch (error) {
-                console.error('Auth error:', error);
-                
-                let errorMessage = 'Erreur de connexion au serveur';
-                
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    // Enable test mode if API is not accessible
-                    isTestMode = true;
-                    authToken = 'test-token-' + Date.now();
-                    localStorage.setItem('token', authToken);
-                    currentUser = { 
-                        email: email, 
-                        username: username || email.split('@')[0],
-                        balance: 100,
-                        bonus_balance: 50
-                    };
-                    
-                    showNotification('Mode test activé - API non accessible', 'warning');
+            if (isLoginMode) {
+                // Login
+                const user = users.find(u => u.email === email && u.password === password);
+                if (user) {
+                    saveCurrentUser(user);
+                    showNotification('Connexion réussie!');
                     hideAuthModal();
+                    loadGameData();
                     updateDisplay();
+                } else {
+                    showNotification('Identifiants invalides', 'error');
+                }
+            } else {
+                // Register
+                const existingUser = users.find(u => u.email === email || u.username === username);
+                if (existingUser) {
+                    showNotification('Utilisateur déjà existant', 'error');
                     return;
-                } else if (error.message.includes('CORS')) {
-                    errorMessage = 'Erreur CORS. Essayez d\'ouvrir la page directement depuis le serveur.';
-                } else if (error.message) {
-                    errorMessage = error.message;
                 }
                 
-                showNotification(errorMessage, 'error');
-            } finally {
-                // Reset button state
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }
-        }
-
-        async function fetchUserData() {
-            if (!authToken) return;
-            
-            try {
-                const response = await fetch(`${API_BASE}/auth/me`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Accept': 'application/json',
-                    },
-                    mode: 'cors'
-                });
+                const newUser = {
+                    id: Date.now().toString(),
+                    email: email,
+                    username: username,
+                    password: password,
+                    referralCode: generateReferralCode(),
+                    referredBy: referralCode,
+                    createdAt: new Date().toISOString()
+                };
                 
-                if (response.ok) {
-                    currentUser = await response.json();
-                    updateUserDisplay();
-                } else {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-            } catch (error) {
-                console.error('Failed to fetch user data:', error);
-                showNotification('Session expirée, veuillez vous reconnecter', 'error');
-                logout();
-            }
-        }
-
-        async function fetchGameData() {
-            if (!authToken) return;
-            
-            try {
-                const [statsResponse, gameResponse] = await Promise.all([
-                    fetch(`${API_BASE}/stats`, {
-                        method: 'GET',
-                        headers: { 
-                            'Authorization': `Bearer ${authToken}`,
-                            'Accept': 'application/json',
-                        },
-                        mode: 'cors'
-                    }),
-                    fetch(`${API_BASE}/game/status`, {
-                        method: 'GET',
-                        headers: { 
-                            'Authorization': `Bearer ${authToken}`,
-                            'Accept': 'application/json',
-                        },
-                        mode: 'cors'
-                    })
-                ]);
+                users.push(newUser);
+                saveUsers(users);
+                saveCurrentUser(newUser);
                 
-                if (statsResponse.ok && gameResponse.ok) {
-                    const stats = await statsResponse.json();
-                    const gameData = await gameResponse.json();
-                    
-                    // Update game state with real data
-                    gameState.mainBalance = stats.balance || 0;
-                    gameState.bonusBalance = stats.bonus_balance || 0;
-                    gameState.energy = gameData.energy || 100;
-                    gameState.maxEnergy = gameData.max_energy || 100;
-                    gameState.energyRegenRate = gameData.energy_regen_rate || 1;
-                    gameState.clickPower = gameData.click_power || 1;
-                    gameState.autoMiningRate = gameData.auto_mining_rate || 0;
-                    gameState.totalClicks = gameData.total_clicks || 0;
-                    gameState.gameBalance = gameData.game_balance || 0;
-                    
-                    updateDisplay();
-                } else {
-                    console.warn('Failed to fetch some data, using default values');
-                    updateDisplay();
+                // Give referral bonus
+                if (referralCode) {
+                    const referrer = users.find(u => u.referralCode === referralCode);
+                    if (referrer) {
+                        gameState.bonusBalance += 50;
+                        showNotification('Bonus de parrainage reçu!');
+                    }
                 }
-            } catch (error) {
-                console.error('Failed to fetch game data:', error);
-                showNotification('Erreur lors du chargement des données', 'error');
-                updateDisplay(); // Use default values
-            }
-        }
-
-        function updateUserDisplay() {
-            if (currentUser) {
-                // User is logged in, hide auth modal and show main content
+                
+                showNotification('Inscription réussie!');
                 hideAuthModal();
+                initializeGameData();
+                updateDisplay();
             }
+        }
+
+        function generateReferralCode() {
+            return Math.random().toString(36).substring(2, 10).toUpperCase();
+        }
+
+        function initializeGameData() {
+            gameState = {
+                energy: 100,
+                maxEnergy: 100,
+                energyRegenRate: 1,
+                clickPower: 1,
+                autoMiningRate: 0.0,
+                totalClicks: 0,
+                gameBalance: 0.0,
+                mainBalance: 100.0, // Starting bonus
+                bonusBalance: 0.0,
+                upgrades: {
+                    energy_regen: 0,
+                    double_click: 0,
+                    auto_mining: 0,
+                    max_energy: 0
+                },
+                completedTasks: []
+            };
+            saveGameData();
         }
 
         function logout() {
-            authToken = null;
+            localStorage.removeItem(CURRENT_USER_KEY);
+            localStorage.removeItem(GAME_DATA_KEY);
             currentUser = null;
-            localStorage.removeItem('token');
             showAuthModal();
             showNotification('Déconnexion réussie');
         }
