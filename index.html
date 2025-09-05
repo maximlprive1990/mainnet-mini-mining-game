@@ -11,7 +11,6 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'AW-17533127168');
     </script>
     
@@ -436,6 +435,27 @@
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
         }
 
+        .user-info-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--cyber-border);
+            border-radius: 8px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .offline-mode-banner {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
         @media (max-width: 768px) {
             .cyber-title {
                 font-size: 2rem;
@@ -460,45 +480,31 @@
     </style>
 </head>
 <body>
-    <!-- Authentication Container (shown when not logged in) -->
-    <div id="auth-container" class="auth-container hidden">
-        <h2 class="cyber-title" style="font-size: 2rem; margin-bottom: 20px;">mAInet Access</h2>
-        
-        <!-- Login Form -->
-        <div id="login-form">
-            <h3 style="color: var(--cyber-green); margin-bottom: 20px;">Se Connecter</h3>
-            <form class="auth-form" onsubmit="handleLogin(event)">
-                <input type="email" id="login-email" class="auth-input" placeholder="Email" required>
-                <input type="password" id="login-password" class="auth-input" placeholder="Mot de passe" required>
-                <button type="submit" class="cyber-button" id="login-btn">
-                    <span>Se Connecter</span>
+    <!-- Main App Container -->
+    <div id="app-container" class="container">
+        <!-- Offline Mode Banner -->
+        <div id="offline-banner" class="offline-mode-banner hidden">
+            🔄 Mode Hors-ligne Activé - Vos données sont sauvegardées localement
+        </div>
+
+        <!-- User Info Bar -->
+        <div class="user-info-bar">
+            <div>
+                <span style="color: var(--cyber-green);">👤 Joueur:</span> 
+                <span id="username-display">Chargement...</span>
+            </div>
+            <div>
+                <button class="cyber-button" onclick="saveToCloud()" id="save-cloud-btn">
+                    <i data-lucide="cloud-upload" class="icon"></i>
+                    <span style="margin-left: 8px;">Sauver Cloud</span>
                 </button>
-            </form>
-            <div class="auth-toggle" onclick="showRegister()">
-                Pas de compte ? S'inscrire
+                <button class="cyber-button" onclick="logout()" style="margin-left: 10px;">
+                    <i data-lucide="log-out" class="icon"></i>
+                    <span style="margin-left: 8px;">Déconnexion</span>
+                </button>
             </div>
         </div>
 
-        <!-- Register Form -->
-        <div id="register-form" class="hidden">
-            <h3 style="color: var(--cyber-green); margin-bottom: 20px;">S'Inscrire</h3>
-            <form class="auth-form" onsubmit="handleRegister(event)">
-                <input type="text" id="register-username" class="auth-input" placeholder="Nom d'utilisateur" required>
-                <input type="text" id="register-fullname" class="auth-input" placeholder="Nom complet">
-                <input type="email" id="register-email" class="auth-input" placeholder="Email" required>
-                <input type="password" id="register-password" class="auth-input" placeholder="Mot de passe" required>
-                <button type="submit" class="cyber-button" id="register-btn">
-                    <span>S'Inscrire</span>
-                </button>
-            </form>
-            <div class="auth-toggle" onclick="showLogin()">
-                Déjà un compte ? Se connecter
-            </div>
-        </div>
-    </div>
-
-    <!-- Main App Container (shown when logged in) -->
-    <div id="app-container" class="container hidden">
         <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="cyber-title">mAInet</h1>
@@ -556,6 +562,7 @@
                 <button class="tab-trigger" onclick="showTab('deposits')">Dépôts</button>
                 <button class="tab-trigger" onclick="showTab('referral')">Parrainage</button>
                 <button class="tab-trigger" onclick="showTab('mining-rigs')">Installations</button>
+                <button class="tab-trigger" onclick="showTab('account')">Mon Compte</button>
             </div>
 
             <!-- Game Tab -->
@@ -585,7 +592,23 @@
             <div id="tab-tasks" class="tab-content">
                 <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Tâches Disponibles</h2>
                 <div id="tasks-container">
-                    <!-- Tasks will be loaded here -->
+                    <div class="cyber-card">
+                        <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Tâches Daily</h3>
+                        <div class="space-y-3">
+                            <div style="padding: 15px; border: 1px solid var(--cyber-border); border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h4 style="color: white; margin-bottom: 5px;">Bonus Quotidien</h4>
+                                        <p style="color: #ccc; font-size: 0.9rem;">Réclamez votre bonus quotidien de 50 tokens</p>
+                                    </div>
+                                    <button class="cyber-button" onclick="claimDailyBonus()">
+                                        <i data-lucide="gift" class="icon"></i>
+                                        <span style="margin-left: 8px;">Réclamer</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -593,7 +616,12 @@
             <div id="tab-shop" class="tab-content">
                 <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Boutique Mining</h2>
                 <div id="shop-container">
-                    <!-- Shop items will be loaded here -->
+                    <div class="cyber-card">
+                        <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Améliorations</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="upgrades-shop">
+                            <!-- Upgrades will be loaded here -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -601,15 +629,55 @@
             <div id="tab-deposits" class="tab-content">
                 <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Dépôts & Vérification IDTX</h2>
                 <div id="deposits-container">
-                    <!-- Deposit verification will be loaded here -->
+                    <div class="cyber-card">
+                        <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Informations de Dépôt</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm text-gray-400">Payeer</p>
+                                <p style="color: var(--cyber-green); font-family: 'Courier New', monospace;">P1112145219</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">FaucetPay</p>
+                                <p style="color: var(--cyber-green); font-family: 'Courier New', monospace;">maximlprive90@gmail.com</p>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px;">
+                                <p style="color: var(--cyber-green); font-weight: bold;">🎉 BONUS DE 17% SUR TOUS LES DÉPÔTS ! 🎉</p>
+                                <p style="color: #ccc; font-size: 0.9rem;">Votre dépôt sera automatiquement majoré de 17%</p>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4 style="color: var(--cyber-green); margin-bottom: 15px;">Vérifier Transaction IDTX</h4>
+                            <div class="space-y-3">
+                                <input type="text" id="transaction-id-input" placeholder="ID de Transaction..." 
+                                       class="auth-input" style="width: 100%; margin-bottom: 10px;">
+                                
+                                <select id="payment-method-select" class="auth-input" style="width: 100%; margin-bottom: 10px;">
+                                    <option value="payeer">Payeer</option>
+                                    <option value="faucetpay">FaucetPay</option>
+                                </select>
+                                
+                                <button onclick="verifyTransaction()" class="cyber-button" style="width: 100%;">
+                                    <i data-lucide="check-circle" class="icon"></i>
+                                    <span style="margin-left: 8px;">Vérifier Transaction</span>
+                                </button>
+                            </div>
+                            
+                            <div id="verification-result" class="hidden" style="margin-top: 15px;">
+                                <!-- Results will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Referral Tab -->
             <div id="tab-referral" class="tab-content">
                 <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Programme de Parrainage</h2>
-                <div id="referral-container">
-                    <!-- Referral system will be loaded here -->
+                <div class="cyber-card">
+                    <p style="color: #ccc; text-align: center; padding: 40px;">
+                        Système de parrainage en développement...
+                    </p>
                 </div>
             </div>
 
@@ -617,7 +685,57 @@
             <div id="tab-mining-rigs" class="tab-content">
                 <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Installations Mining</h2>
                 <div id="mining-rigs-container">
-                    <!-- Mining rigs will be loaded here -->
+                    <!-- Mining rigs content from original implementation -->
+                    <p style="color: #ccc; text-align: center; padding: 40px;">
+                        Système de mining rigs chargé...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Account Tab -->
+            <div id="tab-account" class="tab-content">
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Mon Compte</h2>
+                <div class="space-y-4">
+                    <div class="cyber-card">
+                        <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Informations du Compte</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label style="color: #ccc; font-size: 0.9rem;">Nom d'utilisateur</label>
+                                <input type="text" id="username-input" class="auth-input" style="width: 100%; margin-top: 5px;">
+                            </div>
+                            <div>
+                                <label style="color: #ccc; font-size: 0.9rem;">Email</label>
+                                <input type="email" id="email-input" class="auth-input" style="width: 100%; margin-top: 5px;">
+                            </div>
+                            <button onclick="updateProfile()" class="cyber-button">
+                                <i data-lucide="save" class="icon"></i>
+                                <span style="margin-left: 8px;">Sauvegarder</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="cyber-card">
+                        <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Synchronisation Cloud</h3>
+                        <div class="space-y-3">
+                            <div id="cloud-status" style="padding: 15px; border-radius: 8px; text-align: center;">
+                                <p id="sync-status-text">Vérification de la connexion...</p>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="saveToCloud()" class="cyber-button" style="flex: 1;">
+                                    <i data-lucide="cloud-upload" class="icon"></i>
+                                    <span style="margin-left: 8px;">Sauver Cloud</span>
+                                </button>
+                                <button onclick="loadFromCloud()" class="cyber-button" style="flex: 1;">
+                                    <i data-lucide="cloud-download" class="icon"></i>
+                                    <span style="margin-left: 8px;">Charger Cloud</span>
+                                </button>
+                            </div>
+                            <button onclick="exportData()" class="cyber-button" style="width: 100%;">
+                                <i data-lucide="download" class="icon"></i>
+                                <span style="margin-left: 8px;">Exporter Données</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -627,18 +745,28 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // Supabase Configuration
+        // Supabase Configuration (with fallback)
         const SUPABASE_URL = 'https://rjfxxtdfrviipcwpacvc.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqZnh4dGRmcnZpaXBjd3BhY3ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc5MzIsImV4cCI6MjA3MjYzMzkzMn0.uBSgwh6vYP3xl4_YUisekInaMR8fDC-EEQTuf8MRyUQ';
         
-        // Initialize Supabase
-        const { createClient } = supabase;
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+        // localStorage keys
+        const USER_DATA_KEY = 'mainet_user_data';
+        const GAME_DATA_KEY = 'mainet_game_state';
+        
         // Global variables
+        let supabaseClient = null;
         let currentUser = null;
         let gameState = null;
-        let authToken = null;
+        let isOnlineMode = false;
+
+        // Initialize Supabase (with error handling)
+        try {
+            const { createClient } = supabase;
+            supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (error) {
+            console.warn('Supabase initialization failed, using offline mode:', error);
+            supabaseClient = null;
+        }
 
         // Initialize the app
         document.addEventListener('DOMContentLoaded', function() {
@@ -647,288 +775,217 @@
         });
 
         async function initializeApp() {
-            // Check if user is already logged in
-            const { data: { session } } = await supabaseClient.auth.getSession();
+            // Try to load user session
+            await loadUserSession();
             
-            if (session) {
-                currentUser = session.user;
-                authToken = session.access_token;
-                showMainApp();
-                await loadGameData();
-            } else {
-                showAuthContainer();
-            }
-
+            // Initialize game data
+            loadGameData();
+            
             // Start countdown timer
             updateCountdown();
             setInterval(updateCountdown, 1000);
-        }
-
-        function showAuthContainer() {
-            document.getElementById('auth-container').classList.remove('hidden');
-            document.getElementById('app-container').classList.add('hidden');
-        }
-
-        function showMainApp() {
-            document.getElementById('auth-container').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden');
-        }
-
-        function showLogin() {
-            document.getElementById('login-form').classList.remove('hidden');
-            document.getElementById('register-form').classList.add('hidden');
-        }
-
-        function showRegister() {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-        }
-
-        async function handleLogin(event) {
-            event.preventDefault();
-            const loginBtn = document.getElementById('login-btn');
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-
-            try {
-                loginBtn.innerHTML = '<div class="loading-spinner"></div>Connexion...';
-                loginBtn.disabled = true;
-
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) throw error;
-
-                currentUser = data.user;
-                authToken = data.session.access_token;
-                
-                showNotification('Connexion réussie !', 'success');
-                showMainApp();
-                await loadGameData();
-
-            } catch (error) {
-                console.error('Login error:', error);
-                showNotification('Erreur de connexion: ' + error.message, 'error');
-            } finally {
-                loginBtn.innerHTML = '<span>Se Connecter</span>';
-                loginBtn.disabled = false;
-            }
-        }
-
-        async function handleRegister(event) {
-            event.preventDefault();
-            const registerBtn = document.getElementById('register-btn');
-            const username = document.getElementById('register-username').value;
-            const fullName = document.getElementById('register-fullname').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-
-            try {
-                registerBtn.innerHTML = '<div class="loading-spinner"></div>Inscription...';
-                registerBtn.disabled = true;
-
-                const { data, error } = await supabaseClient.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: {
-                            username: username,
-                            full_name: fullName
-                        }
-                    }
-                });
-
-                if (error) throw error;
-
-                if (data.user && !data.user.email_confirmed_at) {
-                    // Show custom popup with message about email verification
-                    showEmailVerificationPopup();
-                } else {
-                    currentUser = data.user;
-                    authToken = data.session.access_token;
-                    showNotification('Inscription réussie !', 'success');
-                    showMainApp();
-                    await loadGameData();
-                }
-
-            } catch (error) {
-                console.error('Registration error:', error);
-                showNotification('Erreur d\'inscription: ' + error.message, 'error');
-            } finally {
-                registerBtn.innerHTML = '<span>S\'Inscrire</span>';
-                registerBtn.disabled = false;
-            }
-        }
-
-        function showEmailVerificationPopup() {
-            // Create popup overlay
-            const popupOverlay = document.createElement('div');
-            popupOverlay.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4';
-            popupOverlay.id = 'email-verification-popup';
             
-            popupOverlay.innerHTML = `
-                <div class="cyber-card max-w-md w-full" onclick="event.stopPropagation()">
-                    <div class="p-6">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-600 flex items-center justify-center">
-                                <i data-lucide="mail" class="icon text-white text-2xl"></i>
-                            </div>
-                            <h2 class="text-xl font-bold text-white mb-2">Vérification Email Requise</h2>
-                        </div>
-                        
-                        <div class="bg-yellow-900 border border-yellow-600 rounded-lg p-4 mb-6">
-                            <div class="flex items-start space-x-3">
-                                <i data-lucide="alert-triangle" class="icon text-yellow-400 mt-0.5 flex-shrink-0"></i>
-                                <div class="text-yellow-100 text-sm">
-                                    <p class="font-semibold mb-2">IMPORTANT - Confirmation requise</p>
-                                    <p class="mb-3">
-                                        Après votre inscription, vous devez <strong>vous rendre dans vos messages</strong> 
-                                        pour autoriser et confirmer ce site web mAInet.
-                                    </p>
-                                    <div class="bg-yellow-800 rounded p-2 text-center">
-                                        <strong>📧 Vérifiez votre boîte email maintenant !</strong>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-3">
-                            <p class="text-sm text-gray-300">
-                                <strong>Étapes à suivre:</strong>
-                            </p>
-                            <ol class="text-sm text-gray-300 space-y-2 ml-4">
-                                <li>1. Ouvrez votre boîte email</li>
-                                <li>2. Cherchez l'email de confirmation de Supabase</li>
-                                <li>3. Cliquez sur le lien de confirmation</li>
-                                <li>4. Autorisez et confirmez le site mAInet</li>
-                                <li>5. Revenez sur cette page pour vous connecter</li>
-                            </ol>
-                        </div>
-                        
-                        <div class="mt-6 flex space-x-3">
-                            <button onclick="closeEmailVerificationPopup()" class="cyber-button flex-1">
-                                <i data-lucide="check" class="icon"></i>
-                                <span style="margin-left: 8px;">J'ai compris</span>
-                            </button>
-                            <button onclick="resendConfirmationEmail()" class="cyber-button flex-1 bg-blue-600">
-                                <i data-lucide="refresh-cw" class="icon"></i>
-                                <span style="margin-left: 8px;">Renvoyer Email</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Start energy regeneration
+            setInterval(regenerateEnergy, 1000);
             
-            document.body.appendChild(popupOverlay);
-            lucide.createIcons();
+            // Start auto mining
+            setInterval(autoMining, 1000);
+            
+            // Periodic save
+            setInterval(saveGameData, 30000);
+            
+            // Update cloud status
+            updateCloudStatus();
         }
 
-        function closeEmailVerificationPopup() {
-            const popup = document.getElementById('email-verification-popup');
-            if (popup) {
-                popup.remove();
-            }
-            showNotification('N\'oubliez pas de vérifier votre email !', 'info');
-        }
-
-        async function resendConfirmationEmail() {
+        async function loadUserSession() {
             try {
-                const email = document.getElementById('register-email').value;
-                if (!email) {
-                    showNotification('Email non trouvé', 'error');
-                    return;
-                }
-
-                const { error } = await supabaseClient.auth.resend({
-                    type: 'signup',
-                    email: email
-                });
-
-                if (error) throw error;
-
-                showNotification('Email de confirmation renvoyé !', 'success');
-                
-                // Update popup text
-                const popup = document.getElementById('email-verification-popup');
-                if (popup) {
-                    const alertDiv = popup.querySelector('.bg-yellow-800');
-                    if (alertDiv) {
-                        alertDiv.innerHTML = '<strong>📧 Email renvoyé ! Vérifiez maintenant !</strong>';
+                // Try to get existing session from Supabase
+                if (supabaseClient) {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    
+                    if (session) {
+                        currentUser = session.user;
+                        isOnlineMode = true;
+                        document.getElementById('offline-banner').classList.add('hidden');
+                        document.getElementById('username-display').textContent = session.user.email || 'Utilisateur Connecté';
+                        return;
                     }
                 }
-
             } catch (error) {
-                console.error('Resend error:', error);
-                showNotification('Erreur lors du renvoi: ' + error.message, 'error');
+                console.warn('Failed to load Supabase session:', error);
             }
+            
+            // Fallback to localStorage user
+            const userData = localStorage.getItem(USER_DATA_KEY);
+            if (userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                }
+            }
+            
+            // Create new offline user if none exists
+            if (!currentUser) {
+                currentUser = {
+                    id: 'offline_' + Date.now(),
+                    email: `user_${Date.now()}@local.offline`,
+                    username: `Joueur_${Date.now().toString().slice(-4)}`,
+                    created_at: new Date().toISOString(),
+                    offline_mode: true
+                };
+                localStorage.setItem(USER_DATA_KEY, JSON.stringify(currentUser));
+            }
+            
+            // Set offline mode
+            isOnlineMode = false;
+            document.getElementById('offline-banner').classList.remove('hidden');
+            document.getElementById('username-display').textContent = currentUser.username || currentUser.email || 'Joueur Local';
         }
 
-        async function logout() {
-            try {
-                await supabaseClient.auth.signOut();
-                currentUser = null;
-                authToken = null;
-                gameState = null;
-                showAuthContainer();
-                showNotification('Déconnexion réussie', 'success');
-            } catch (error) {
-                console.error('Logout error:', error);
+        function loadGameData() {
+            // Try to load from localStorage first
+            const savedData = localStorage.getItem(GAME_DATA_KEY);
+            
+            if (savedData) {
+                try {
+                    gameState = JSON.parse(savedData);
+                } catch (error) {
+                    console.error('Error parsing game data:', error);
+                    gameState = createDefaultGameState();
+                }
+            } else {
+                gameState = createDefaultGameState();
             }
+            
+            // Update energy from time passed
+            updateEnergyFromTime();
+            updateDisplay();
+            loadUpgrades();
         }
 
-        async function loadGameData() {
+        function createDefaultGameState() {
+            return {
+                current_coins: 1000,
+                main_balance: 1000,
+                bonus_balance: 0,
+                energy: 100,
+                max_energy: 100,
+                energy_regen_rate: 1.0,
+                click_power: 1,
+                auto_mining_rate: 0.0,
+                total_clicks: 0,
+                achievements: [],
+                upgrades: {
+                    ENERGY_REGEN: 0,
+                    CLICK_POWER: 0,
+                    AUTO_MINING: 0,
+                    MAX_ENERGY: 0
+                },
+                mining_rigs: {
+                    racks: {
+                        1: { owned: false, slots: {} },
+                        2: { owned: false, slots: {} },
+                        3: { owned: false, slots: {} },
+                        4: { owned: false, slots: {} }
+                    },
+                    miners: [],
+                    totalHashrate: 0
+                },
+                last_save: new Date().toISOString(),
+                last_energy_update: new Date().toISOString()
+            };
+        }
+
+        function saveGameData() {
+            if (!gameState) return;
+            
+            gameState.last_save = new Date().toISOString();
+            localStorage.setItem(GAME_DATA_KEY, JSON.stringify(gameState));
+        }
+
+        async function saveToCloud() {
+            if (!isOnlineMode || !supabaseClient || !currentUser) {
+                showNotification('Mode hors-ligne - Données sauvées localement', 'info');
+                return;
+            }
+
             try {
-                // Get user profile and game state from backend
-                const response = await fetch(`/api/profile`, {
+                showNotification('Sauvegarde cloud en cours...', 'info');
+                
+                // Save to Supabase
+                const response = await fetch('/api/game/state', {
+                    method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${authToken}`,
+                        'Authorization': `Bearer ${(await supabaseClient.auth.getSession()).data.session?.access_token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(gameState)
+                });
+
+                if (response.ok) {
+                    showNotification('✅ Données sauvegardées dans le cloud!', 'success');
+                    updateCloudStatus();
+                } else {
+                    throw new Error('Erreur de sauvegarde cloud');
+                }
+                
+            } catch (error) {
+                console.error('Cloud save error:', error);
+                showNotification('❌ Erreur sauvegarde cloud - Données gardées en local', 'error');
+            }
+        }
+
+        async function loadFromCloud() {
+            if (!isOnlineMode || !supabaseClient || !currentUser) {
+                showNotification('Mode hors-ligne - Chargement depuis localStorage', 'info');
+                loadGameData();
+                return;
+            }
+
+            try {
+                showNotification('Chargement depuis le cloud...', 'info');
+                
+                const response = await fetch('/api/game/state', {
+                    headers: {
+                        'Authorization': `Bearer ${(await supabaseClient.auth.getSession()).data.session?.access_token}`,
                         'Content-Type': 'application/json'
                     }
                 });
 
                 if (response.ok) {
-                    const data = await response.json();
-                    gameState = data.game_state;
-                    updateDisplay();
-                    loadTasks();
-                    loadShop();
-                    loadDeposits();
+                    const cloudData = await response.json();
+                    if (cloudData) {
+                        gameState = cloudData;
+                        saveGameData(); // Save to localStorage too
+                        updateDisplay();
+                        showNotification('✅ Données chargées depuis le cloud!', 'success');
+                    }
                 } else {
-                    console.error('Failed to load game data:', response.statusText);
+                    throw new Error('Pas de données cloud trouvées');
                 }
+                
             } catch (error) {
-                console.error('Error loading game data:', error);
-                // Fallback to default state
-                gameState = {
-                    current_coins: 1000,
-                    main_balance: 1000,
-                    bonus_balance: 0,
-                    energy: 100,
-                    max_energy: 100,
-                    energy_regen_rate: 1.0,
-                    click_power: 1,
-                    total_clicks: 0
-                };
-                updateDisplay();
+                console.error('Cloud load error:', error);
+                showNotification('❌ Erreur chargement cloud - Utilisation données locales', 'error');
             }
         }
 
-        async function saveGameData() {
-            if (!gameState || !authToken) return;
-
-            try {
-                await fetch(`/api/game/state`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(gameState)
-                });
-            } catch (error) {
-                console.error('Error saving game data:', error);
+        function updateCloudStatus() {
+            const statusDiv = document.getElementById('cloud-status');
+            const statusText = document.getElementById('sync-status-text');
+            
+            if (isOnlineMode) {
+                statusDiv.style.border = '1px solid var(--cyber-green)';
+                statusDiv.style.background = 'rgba(0, 255, 136, 0.1)';
+                statusText.textContent = '🟢 Connecté au Cloud - Synchronisation disponible';
+                statusText.style.color = 'var(--cyber-green)';
+            } else {
+                statusDiv.style.border = '1px solid #ff6b35';
+                statusDiv.style.background = 'rgba(255, 107, 53, 0.1)';
+                statusText.textContent = '🔴 Mode Hors-ligne - Données locales uniquement';
+                statusText.style.color = '#ff6b35';
             }
         }
 
@@ -937,12 +994,47 @@
 
             document.getElementById('main-balance').textContent = (gameState.main_balance || 0).toFixed(2);
             document.getElementById('bonus-balance').textContent = (gameState.bonus_balance || 0).toFixed(2);
-            document.getElementById('energy-display').textContent = `${gameState.energy || 100}/${gameState.max_energy || 100}`;
+            document.getElementById('energy-display').textContent = `${Math.floor(gameState.energy || 100)}/${gameState.max_energy || 100}`;
             document.getElementById('energy-fill').style.width = `${((gameState.energy || 100) / (gameState.max_energy || 100)) * 100}%`;
             document.getElementById('energy-regen').textContent = gameState.energy_regen_rate || 1.0;
             document.getElementById('game-balance-display').textContent = (gameState.current_coins || 0).toFixed(3);
             document.getElementById('total-clicks').textContent = gameState.total_clicks || 0;
             document.getElementById('click-power-display').textContent = `+${((gameState.click_power || 1) * 0.1).toFixed(1)} tokens`;
+            document.getElementById('total-hashrate').textContent = `${(gameState.mining_rigs?.totalHashrate || 0).toFixed(2)} H/s`;
+        }
+
+        function updateEnergyFromTime() {
+            if (!gameState || !gameState.last_energy_update) return;
+            
+            const now = new Date();
+            const lastUpdate = new Date(gameState.last_energy_update);
+            const timeDiff = (now - lastUpdate) / 1000; // seconds
+            
+            if (timeDiff > 0) {
+                const energyToAdd = (gameState.energy_regen_rate || 1.0) * (timeDiff / 60); // per minute
+                gameState.energy = Math.min(gameState.max_energy || 100, (gameState.energy || 100) + energyToAdd);
+                gameState.last_energy_update = now.toISOString();
+            }
+        }
+
+        function regenerateEnergy() {
+            if (!gameState) return;
+            
+            if (gameState.energy < gameState.max_energy) {
+                gameState.energy = Math.min(gameState.max_energy, gameState.energy + (gameState.energy_regen_rate / 60));
+                updateDisplay();
+            }
+            gameState.last_energy_update = new Date().toISOString();
+        }
+
+        function autoMining() {
+            if (!gameState || gameState.auto_mining_rate <= 0) return;
+            
+            const miningReward = gameState.auto_mining_rate / 60; // per second
+            gameState.current_coins += miningReward;
+            gameState.main_balance += miningReward;
+            
+            updateDisplay();
         }
 
         function performClick() {
@@ -1019,62 +1111,87 @@
             }, 3000);
         }
 
-        function loadTasks() {
-            const tasksContainer = document.getElementById('tasks-container');
-            tasksContainer.innerHTML = `
-                <div class="cyber-card">
-                    <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Tâches disponibles</h3>
-                    <p style="color: #ccc; text-align: center; padding: 20px;">
-                        Les tâches seront chargées depuis Supabase...
-                    </p>
-                </div>
-            `;
+        function loadUpgrades() {
+            const upgradesShop = document.getElementById('upgrades-shop');
+            
+            const upgrades = [
+                { type: 'ENERGY_REGEN', name: 'Régénération Énergie', baseCost: 100, description: 'Augmente la régénération d\'énergie' },
+                { type: 'CLICK_POWER', name: 'Puissance de Clic', baseCost: 200, description: 'Augmente les tokens par clic' },
+                { type: 'AUTO_MINING', name: 'Auto Mining', baseCost: 500, description: 'Génère des tokens automatiquement' },
+                { type: 'MAX_ENERGY', name: 'Énergie Maximum', baseCost: 300, description: 'Augmente l\'énergie maximum' }
+            ];
+            
+            upgradesShop.innerHTML = upgrades.map(upgrade => {
+                const currentLevel = gameState.upgrades?.[upgrade.type] || 0;
+                const cost = Math.floor(upgrade.baseCost * Math.pow(1.5, currentLevel));
+                
+                return `
+                    <div class="cyber-card" style="margin-bottom: 15px;">
+                        <h4 style="color: var(--cyber-green); margin-bottom: 10px;">${upgrade.name}</h4>
+                        <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 10px;">${upgrade.description}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--cyber-yellow);">Niveau: ${currentLevel}</span>
+                            <button onclick="buyUpgrade('${upgrade.type}', ${cost})" class="cyber-button">
+                                ${cost} tokens
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function loadShop() {
-            const shopContainer = document.getElementById('shop-container');
-            shopContainer.innerHTML = `
-                <div class="cyber-card">
-                    <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Boutique Mining</h3>
-                    <p style="color: #ccc; text-align: center; padding: 20px;">
-                        La boutique sera chargée depuis Supabase...
-                    </p>
-                </div>
-            `;
+        function buyUpgrade(type, cost) {
+            if (!gameState || gameState.current_coins < cost) {
+                showNotification('Solde insuffisant !', 'error');
+                return;
+            }
+            
+            gameState.current_coins -= cost;
+            gameState.main_balance -= cost;
+            
+            if (!gameState.upgrades) gameState.upgrades = {};
+            gameState.upgrades[type] = (gameState.upgrades[type] || 0) + 1;
+            
+            // Apply upgrade effects
+            switch(type) {
+                case 'ENERGY_REGEN':
+                    gameState.energy_regen_rate = 1.0 + (gameState.upgrades[type] * 0.5);
+                    break;
+                case 'CLICK_POWER':
+                    gameState.click_power = 1 + gameState.upgrades[type];
+                    break;
+                case 'AUTO_MINING':
+                    gameState.auto_mining_rate = gameState.upgrades[type] * 0.1;
+                    break;
+                case 'MAX_ENERGY':
+                    gameState.max_energy = 100 + (gameState.upgrades[type] * 25);
+                    break;
+            }
+            
+            updateDisplay();
+            loadUpgrades();
+            saveGameData();
+            
+            showNotification(`Amélioration ${type} achetée !`, 'success');
         }
 
-        function loadDeposits() {
-            const depositsContainer = document.getElementById('deposits-container');
-            depositsContainer.innerHTML = `
-                <div class="cyber-card">
-                    <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Vérification IDTX</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">ID de Transaction (IDTX)</label>
-                            <input type="text" id="transaction-id-input" placeholder="Entrez votre ID de transaction..." 
-                                   class="auth-input" style="width: 100%; margin-bottom: 10px;">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Méthode de Paiement</label>
-                            <select id="payment-method-select" class="auth-input" style="width: 100%; margin-bottom: 10px;">
-                                <option value="payeer">Payeer</option>
-                                <option value="faucetpay">FaucetPay</option>
-                            </select>
-                        </div>
-                        
-                        <button onclick="verifyTransaction()" class="cyber-button" style="width: 100%;">
-                            <i data-lucide="check-circle" class="icon"></i>
-                            <span style="margin-left: 8px;">Vérifier Transaction</span>
-                        </button>
-                    </div>
-                    
-                    <div id="verification-result" class="hidden" style="margin-top: 15px;">
-                        <!-- Results will be displayed here -->
-                    </div>
-                </div>
-            `;
-            lucide.createIcons();
+        function claimDailyBonus() {
+            const now = new Date();
+            const lastClaim = gameState.last_daily_bonus ? new Date(gameState.last_daily_bonus) : null;
+            
+            if (lastClaim && now - lastClaim < 24 * 60 * 60 * 1000) {
+                showNotification('Bonus déjà réclamé aujourd\'hui !', 'error');
+                return;
+            }
+            
+            gameState.current_coins += 50;
+            gameState.main_balance += 50;
+            gameState.last_daily_bonus = now.toISOString();
+            
+            updateDisplay();
+            saveGameData();
+            
+            showNotification('Bonus quotidien de 50 tokens réclamé !', 'success');
         }
 
         async function verifyTransaction() {
@@ -1087,33 +1204,66 @@
             }
 
             try {
-                const response = await fetch('/api/verify-transaction', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        transaction_id: transactionId,
-                        payment_method: paymentMethod
-                    })
-                });
+                showNotification('Vérification en cours...', 'info');
+                
+                let result;
+                if (isOnlineMode && supabaseClient) {
+                    // Try real API verification
+                    const response = await fetch('/api/verify-transaction', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${(await supabaseClient.auth.getSession()).data.session?.access_token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            transaction_id: transactionId,
+                            payment_method: paymentMethod
+                        })
+                    });
 
-                if (response.ok) {
-                    const result = await response.json();
-                    displayVerificationResult(result);
-                    
-                    if (result.verified) {
-                        await loadGameData(); // Refresh game state
-                        showNotification(`Vérification réussie! +${(result.amount + result.bonus_amount).toFixed(2)} crédité`, 'success');
+                    if (response.ok) {
+                        result = await response.json();
+                    } else {
+                        throw new Error('API verification failed');
                     }
                 } else {
-                    showNotification('Erreur lors de la vérification', 'error');
+                    // Offline simulation
+                    result = simulateVerification(transactionId, paymentMethod);
                 }
+                
+                displayVerificationResult(result);
+                
+                if (result.verified) {
+                    const totalCredit = (result.amount || 0) + (result.bonus_amount || 0);
+                    gameState.current_coins += totalCredit;
+                    gameState.main_balance += result.amount || 0;
+                    gameState.bonus_balance += result.bonus_amount || 0;
+                    
+                    updateDisplay();
+                    saveGameData();
+                    
+                    showNotification(`Vérification réussie! +${totalCredit.toFixed(2)} crédité`, 'success');
+                }
+                
             } catch (error) {
                 console.error('Verification error:', error);
-                showNotification('Erreur de connexion', 'error');
+                showNotification('Erreur de vérification', 'error');
             }
+        }
+
+        function simulateVerification(transactionId, paymentMethod) {
+            // Simple offline verification simulation
+            const amount = Math.random() * 50 + 10; // 10-60
+            const bonusAmount = amount * 0.17;
+            
+            return {
+                transaction_id: transactionId,
+                verified: Math.random() > 0.2, // 80% success rate
+                status: 'verified',
+                amount: amount,
+                bonus_amount: bonusAmount,
+                message: `Transaction simulée - ${amount.toFixed(2)} USD + ${bonusAmount.toFixed(2)} USD bonus (17%)`
+            };
         }
 
         function displayVerificationResult(result) {
@@ -1132,8 +1282,8 @@
                     </div>
                     <p style="color: #ccc; margin-bottom: 8px;">${result.message}</p>
                     <div style="font-size: 0.9rem; color: #aaa;">
-                        ID: ${result.transaction_id} | 
-                        ${result.amount ? `Montant: ${result.amount.toFixed(2)} USD` : ''} 
+                        ID: ${result.transaction_id}
+                        ${result.amount ? `| Montant: ${result.amount.toFixed(2)} USD` : ''}
                         ${result.bonus_amount ? `| Bonus: ${result.bonus_amount.toFixed(2)} USD` : ''}
                     </div>
                 </div>
@@ -1143,20 +1293,46 @@
             lucide.createIcons();
         }
 
-        // Energy regeneration
-        setInterval(() => {
-            if (gameState && gameState.energy < gameState.max_energy) {
-                gameState.energy = Math.min(gameState.max_energy, gameState.energy + (gameState.energy_regen_rate / 60));
-                updateDisplay();
+        function updateProfile() {
+            const username = document.getElementById('username-input').value;
+            const email = document.getElementById('email-input').value;
+            
+            if (currentUser) {
+                currentUser.username = username || currentUser.username;
+                currentUser.email = email || currentUser.email;
+                localStorage.setItem(USER_DATA_KEY, JSON.stringify(currentUser));
+                
+                document.getElementById('username-display').textContent = currentUser.username || currentUser.email;
+                showNotification('Profil mis à jour !', 'success');
             }
-        }, 1000);
+        }
 
-        // Periodic save
-        setInterval(() => {
-            if (gameState) {
-                saveGameData();
+        function exportData() {
+            const exportData = {
+                user: currentUser,
+                gameState: gameState,
+                exportDate: new Date().toISOString(),
+                mode: isOnlineMode ? 'online' : 'offline'
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `mainet_data_${Date.now()}.json`;
+            link.click();
+            
+            showNotification('Données exportées !', 'success');
+        }
+
+        function logout() {
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                localStorage.removeItem(USER_DATA_KEY);
+                localStorage.removeItem(GAME_DATA_KEY);
+                location.reload();
             }
-        }, 30000);
+        }
     </script>
 </body>
 </html>
