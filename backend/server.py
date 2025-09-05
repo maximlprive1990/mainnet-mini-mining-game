@@ -168,6 +168,90 @@ class Payeer:
                 "transaction_found": False
             }
 
+class FaucetPay:
+    def __init__(self, target_email: str):
+        self.target_email = target_email
+    
+    async def verify_transaction(self, transaction_id: str, amount: float = None) -> Dict[str, Any]:
+        """
+        Verify a transaction with FaucetPay API using real API integration
+        """
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                # Real FaucetPay API integration
+                api_params = {
+                    'api_key': os.getenv('FAUCETPAY_API_KEY', ''),
+                    'hash': transaction_id
+                }
+                
+                headers = {
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'FaucetPay-Python-Client/1.0'
+                }
+                
+                response = await client.get(
+                    'https://faucetpay.io/api/v1/gettransaction',
+                    params=api_params,
+                    headers=headers
+                )
+                
+                if response.status_code == 200:
+                    try:
+                        data = response.json()
+                        
+                        # Check if request was successful
+                        if data.get('success', False):
+                            transaction_info = data.get('transaction', {})
+                            
+                            # Check if transaction is to our email
+                            if transaction_info.get('to_email') == self.target_email:
+                                mock_response = {
+                                    "success": True,
+                                    "transaction_found": True,
+                                    "transaction_id": transaction_id,
+                                    "amount": float(transaction_info.get('amount', 0)),
+                                    "currency": transaction_info.get('currency', 'USD'),
+                                    "status": "confirmed" if transaction_info.get('status') == 'completed' else "pending",
+                                    "to_email": self.target_email,
+                                    "from_address": transaction_info.get('from_address', ''),
+                                    "date": transaction_info.get('date', ''),
+                                    "confirmations": transaction_info.get('confirmations', 0)
+                                }
+                            else:
+                                mock_response = {
+                                    "success": False,
+                                    "transaction_found": False,
+                                    "error": "Transaction not sent to our email"
+                                }
+                        else:
+                            mock_response = {
+                                "success": False,
+                                "transaction_found": False,
+                                "error": data.get('message', 'Transaction not found')
+                            }
+                    except json.JSONDecodeError:
+                        mock_response = {
+                            "success": False,
+                            "transaction_found": False,
+                            "error": "Invalid response from FaucetPay API"
+                        }
+                else:
+                    mock_response = {
+                        "success": False,
+                        "transaction_found": False,
+                        "error": f"HTTP error {response.status_code}"
+                    }
+                
+                return mock_response
+                
+        except Exception as e:
+            logger.error(f"FaucetPay API error: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "transaction_found": False
+            }
+
 # Pydantic Models
 class UserRegistration(BaseModel):
     email: EmailStr
