@@ -2816,6 +2816,10 @@
             const savedData = getGameData();
             if (savedData) {
                 gameState = { ...gameState, ...savedData };
+                // Load mining rigs data
+                if (savedData.miningRigs) {
+                    miningRigs = { ...miningRigs, ...savedData.miningRigs };
+                }
                 // Update energy based on time passed
                 updateEnergyFromTime();
             } else {
