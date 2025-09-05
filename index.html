@@ -674,10 +674,66 @@
             <!-- Referral Tab -->
             <div id="tab-referral" class="tab-content">
                 <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Programme de Parrainage</h2>
+                
+                <!-- Referral Stats -->
                 <div class="cyber-card">
-                    <p style="color: #ccc; text-align: center; padding: 40px;">
-                        Système de parrainage en développement...
-                    </p>
+                    <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Mes Statistiques</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-gray-800 rounded-lg">
+                            <div class="text-2xl font-bold text-cyan-400" id="total-referrals">0</div>
+                            <div class="text-sm text-gray-400">Parrainés Total</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-800 rounded-lg">
+                            <div class="text-2xl font-bold text-green-400" id="active-referrals">0</div>
+                            <div class="text-sm text-gray-400">Parrainés Actifs</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-800 rounded-lg">
+                            <div class="text-2xl font-bold text-yellow-400" id="referral-earnings">0.00</div>
+                            <div class="text-sm text-gray-400">Gains Totaux</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Link -->
+                <div class="cyber-card">
+                    <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Mon Lien de Parrainage</h3>
+                    <div class="space-y-3">
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="referral-link" readonly 
+                                   class="auth-input flex-1" 
+                                   style="background: rgba(0, 0, 0, 0.7);"
+                                   value="Loading...">
+                            <button onclick="copyReferralLink()" class="cyber-button">
+                                <i data-lucide="copy" class="icon"></i>
+                                <span style="margin-left: 8px;">Copier</span>
+                            </button>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px;">
+                            <p style="color: var(--cyber-green); font-weight: bold;">🎁 BONUS DE PARRAINAGE</p>
+                            <p style="color: #ccc; font-size: 0.9rem;">Vous: 500 tokens • Parrainé: 200 tokens + 10% permanent sur ses gains</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral History -->
+                <div class="cyber-card">
+                    <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Mes Parrainés</h3>
+                    <div id="referral-history">
+                        <div class="text-center py-8" id="no-referrals">
+                            <p style="color: #ccc;">Aucun parrainé pour le moment</p>
+                            <p style="color: #aaa; font-size: 0.9rem;">Partagez votre lien pour commencer à gagner !</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Rewards -->
+                <div class="cyber-card">
+                    <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Récompenses Disponibles</h3>
+                    <div id="pending-referral-rewards">
+                        <div class="text-center py-4">
+                            <p style="color: #ccc;">Aucune récompense en attente</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
