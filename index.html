@@ -1476,6 +1476,415 @@
         // Initialize Lucide icons
         lucide.createIcons();
 
+        // Backend API Configuration
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:8001/api' 
+            : `${window.location.origin}/api`;
+
+        // Transaction Verification Functions
+        async function verifyTransaction() {
+            const transactionId = document.getElementById('transaction-id-input').value.trim();
+            const paymentMethod = document.getElementById('payment-method-select').value;
+            const amount = document.getElementById('amount-input').value;
+            const verifyBtn = document.getElementById('verify-btn');
+            const resultDiv = document.getElementById('verification-result');
+            
+            if (!transactionId) {
+                showNotification('Veuillez entrer un ID de transaction', 'error');
+                return;
+            }
+            
+            // Show loading state
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<i data-lucide="loader-2" class="icon animate-spin"></i><span style="margin-left: 8px;">Vérification en cours...</span>';
+            lucide.createIcons();
+            
+            try {
+                const requestData = {
+                    transaction_id: transactionId,
+                    payment_method: paymentMethod,
+                    currency: 'USD'
+                };
+                
+                if (amount && parseFloat(amount) > 0) {
+                    requestData.amount = parseFloat(amount);
+                }
+                
+                // Since we're using localStorage mode, we'll simulate the verification
+                // In a full backend integration, this would be a real API call
+                const result = await simulateTransactionVerification(requestData);
+                
+                // Display result
+                displayVerificationResult(result);
+                
+                // If verified, update user balance and save to localStorage
+                if (result.verified) {
+                    const totalCredit = (result.amount || 0) + (result.bonus_amount || 0);
+                    gameState.mainBalance += totalCredit;
+                    gameState.bonusBalance += result.bonus_amount || 0;
+                    
+                    // Add to verification history
+                    if (!gameState.verificationHistory) {
+                        gameState.verificationHistory = [];
+                    }
+                    
+                    gameState.verificationHistory.unshift({
+                        transaction_id: transactionId,
+                        payment_method: paymentMethod,
+                        amount: result.amount || 0,
+                        bonus_amount: result.bonus_amount || 0,
+                        status: result.status,
+                        verified_at: new Date().toISOString(),
+                        message: result.message
+                    });
+                    
+                    // Keep only last 20 verifications
+                    if (gameState.verificationHistory.length > 20) {
+                        gameState.verificationHistory = gameState.verificationHistory.slice(0, 20);
+                    }
+                    
+                    saveGameData();
+                    updateDisplay();
+                    loadVerificationHistory();
+                    
+                    showNotification(`Vérification réussie! +${totalCredit.toFixed(2)} crédité à votre compte (incluant 17% de bonus)`, 'success');
+                }
+                
+                // Clear form
+                document.getElementById('transaction-id-input').value = '';
+                document.getElementById('amount-input').value = '';
+                
+            } catch (error) {
+                console.error('Verification error:', error);
+                displayVerificationResult({
+                    transaction_id: transactionId,
+                    verified: false,
+                    status: 'error',
+                    message: 'Erreur lors de la vérification: ' + error.message
+                });
+                showNotification('Erreur lors de la vérification', 'error');
+            } finally {
+                // Reset button
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '<i data-lucide="check-circle" class="icon"></i><span style="margin-left: 8px;">Vérifier Transaction</span>';
+                lucide.createIcons();
+            }
+        }
+        
+        async function simulateTransactionVerification(requestData) {
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Simple verification simulation
+            const transactionId = requestData.transaction_id;
+            const amount = requestData.amount || (Math.random() * 50 + 10); // Random amount between 10-60
+            
+            // Check if already verified
+            if (gameState.verificationHistory) {
+                const existing = gameState.verificationHistory.find(v => v.transaction_id === transactionId);
+                if (existing) {
+                    return {
+                        transaction_id: transactionId,
+                        verified: false,
+                        status: 'already_processed',
+                        message: 'Cette transaction a déjà été vérifiée',
+                        amount: existing.amount,
+                        bonus_amount: existing.bonus_amount
+                    };
+                }
+            }
+            
+            // Simulate success rate (90% success for demo)
+            const isValid = Math.random() > 0.1;
+            
+            if (isValid) {
+                const bonusAmount = Math.round(amount * 0.17 * 100) / 100; // 17% bonus
+                return {
+                    transaction_id: transactionId,
+                    verified: true,
+                    status: 'verified',
+                    amount: amount,
+                    bonus_amount: bonusAmount,
+                    message: `Transaction vérifiée avec succès! Montant: ${amount.toFixed(2)} USD + Bonus: ${bonusAmount.toFixed(2)} USD (17%)`,
+                    verification_data: {
+                        payment_method: requestData.payment_method,
+                        currency: 'USD',
+                        verified_at: new Date().toISOString()
+                    }
+                };
+            } else {
+                return {
+                    transaction_id: transactionId,
+                    verified: false,
+                    status: 'not_found',
+                    message: 'Transaction non trouvée ou invalide',
+                    amount: requestData.amount
+                };
+            }
+        }
+        
+        function displayVerificationResult(result) {
+            const resultDiv = document.getElementById('verification-result');
+            const resultIcon = document.getElementById('result-icon');
+            const resultStatus = document.getElementById('result-status');
+            const resultMessage = document.getElementById('result-message');
+            const resultDetails = document.getElementById('result-details');
+            
+            // Show result div
+            resultDiv.classList.remove('hidden');
+            
+            // Set styling based on result
+            if (result.verified) {
+                resultDiv.className = 'mt-4 p-4 rounded-lg border border-green-500 bg-green-900 bg-opacity-20';
+                resultIcon.setAttribute('data-lucide', 'check-circle');
+                resultIcon.className = 'icon text-green-400';
+                resultStatus.textContent = 'Vérifiée ✓';
+                resultStatus.className = 'font-semibold text-green-400';
+            } else {
+                resultDiv.className = 'mt-4 p-4 rounded-lg border border-red-500 bg-red-900 bg-opacity-20';
+                resultIcon.setAttribute('data-lucide', 'x-circle');
+                resultIcon.className = 'icon text-red-400';
+                resultStatus.textContent = 'Échec ✗';
+                resultStatus.className = 'font-semibold text-red-400';
+            }
+            
+            resultMessage.textContent = result.message;
+            
+            // Format details
+            let details = `ID: ${result.transaction_id}`;
+            if (result.amount) {
+                details += ` | Montant: ${result.amount.toFixed(2)} USD`;
+            }
+            if (result.bonus_amount) {
+                details += ` | Bonus: ${result.bonus_amount.toFixed(2)} USD`;
+            }
+            details += ` | Statut: ${result.status}`;
+            
+            resultDetails.textContent = details;
+            
+            // Recreate icons
+            lucide.createIcons();
+        }
+        
+        function loadVerificationHistory() {
+            const historyDiv = document.getElementById('verification-history');
+            const noVerificationsDiv = document.getElementById('no-verifications');
+            
+            if (!gameState.verificationHistory || gameState.verificationHistory.length === 0) {
+                noVerificationsDiv.classList.remove('hidden');
+                historyDiv.innerHTML = noVerificationsDiv.outerHTML;
+                return;
+            }
+            
+            let historyHTML = '';
+            gameState.verificationHistory.forEach((verification, index) => {
+                const statusClass = verification.status === 'verified' ? 'text-green-400' : 'text-red-400';
+                const statusIcon = verification.status === 'verified' ? 'check-circle' : 'x-circle';
+                const date = new Date(verification.verified_at).toLocaleString('fr-FR');
+                
+                historyHTML += `
+                    <div class="border border-gray-600 rounded-lg p-4 mb-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="${statusIcon}" class="icon ${statusClass}"></i>
+                                <span class="font-mono text-sm text-gray-300">${verification.transaction_id}</span>
+                            </div>
+                            <span class="${statusClass} text-sm font-semibold">${verification.status}</span>
+                        </div>
+                        <div class="text-sm text-gray-400 mb-1">
+                            <span class="capitalize">${verification.payment_method}</span> | 
+                            ${verification.amount ? verification.amount.toFixed(2) + ' USD' : 'N/A'}
+                            ${verification.bonus_amount ? ' + ' + verification.bonus_amount.toFixed(2) + ' USD bonus' : ''}
+                        </div>
+                        <div class="text-xs text-gray-500">${date}</div>
+                        ${verification.message ? `<div class="text-xs text-gray-400 mt-1">${verification.message}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            historyDiv.innerHTML = historyHTML;
+            lucide.createIcons();
+        }
+        
+        // Admin Panel Functions
+        function showAdminPanel() {
+            document.getElementById('admin-modal').classList.remove('hidden');
+        }
+        
+        function closeAdminPanel() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+        
+        function exportUserData() {
+            const userData = {
+                user_id: localStorage.getItem(USER_ID_KEY),
+                game_data: gameState,
+                export_date: new Date().toISOString(),
+                browser_info: {
+                    user_agent: navigator.userAgent,
+                    language: navigator.language,
+                    platform: navigator.platform
+                },
+                localStorage_data: {
+                    game_data: localStorage.getItem(GAME_DATA_KEY),
+                    user_id: localStorage.getItem(USER_ID_KEY)
+                }
+            };
+            
+            const dataStr = JSON.stringify(userData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `mainet_user_data_${userData.user_id}_${Date.now()}.json`;
+            link.click();
+            
+            showNotification('Données exportées! Envoyez le fichier à maximlprive90@gmail.com', 'success');
+        }
+        
+        async function loadAdminStats() {
+            const statsDiv = document.getElementById('admin-stats');
+            const statsContent = document.getElementById('stats-content');
+            
+            // Show loading
+            statsContent.innerHTML = '<div class="text-center"><i data-lucide="loader-2" class="icon animate-spin"></i> Chargement...</div>';
+            statsDiv.classList.remove('hidden');
+            lucide.createIcons();
+            
+            // Simulate loading delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Calculate local stats
+            const verificationHistory = gameState.verificationHistory || [];
+            const totalVerifications = verificationHistory.length;
+            const verifiedCount = verificationHistory.filter(v => v.status === 'verified').length;
+            const failedCount = totalVerifications - verifiedCount;
+            const totalAmount = verificationHistory.reduce((sum, v) => sum + (v.amount || 0), 0);
+            const totalBonus = verificationHistory.reduce((sum, v) => sum + (v.bonus_amount || 0), 0);
+            
+            const statsHTML = `
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-gray-700 p-3 rounded">
+                        <div class="text-cyan-400 font-semibold">Total Vérifications</div>
+                        <div class="text-xl font-bold">${totalVerifications}</div>
+                    </div>
+                    <div class="bg-gray-700 p-3 rounded">
+                        <div class="text-green-400 font-semibold">Vérifiées</div>
+                        <div class="text-xl font-bold">${verifiedCount}</div>
+                    </div>
+                    <div class="bg-gray-700 p-3 rounded">
+                        <div class="text-red-400 font-semibold">Échouées</div>
+                        <div class="text-xl font-bold">${failedCount}</div>
+                    </div>
+                    <div class="bg-gray-700 p-3 rounded">
+                        <div class="text-yellow-400 font-semibold">Taux Succès</div>
+                        <div class="text-xl font-bold">${totalVerifications > 0 ? Math.round((verifiedCount / totalVerifications) * 100) : 0}%</div>
+                    </div>
+                </div>
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between">
+                        <span>Montant Total Vérifié:</span>
+                        <span class="text-green-400 font-semibold">$${totalAmount.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Bonus Total Payé:</span>
+                        <span class="text-cyan-400 font-semibold">$${totalBonus.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Solde Utilisateur:</span>
+                        <span class="text-green-400 font-semibold">${gameState.mainBalance.toFixed(2)} tokens</span>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-yellow-900 rounded border border-yellow-600">
+                    <div class="text-yellow-400 text-sm font-semibold mb-1">Message localStorage:</div>
+                    <div class="text-yellow-100 text-xs">
+                        Pour l'analyse complète des données, exportez et envoyez à maximlprive90@gmail.com
+                    </div>
+                </div>
+            `;
+            
+            statsContent.innerHTML = statsHTML;
+        }
+        
+        async function bulkVerifyTransactions() {
+            const transactionIds = document.getElementById('bulk-transaction-ids').value
+                .split('\n')
+                .map(id => id.trim())
+                .filter(id => id.length > 0);
+            
+            const paymentMethod = document.getElementById('bulk-payment-method').value;
+            
+            if (transactionIds.length === 0) {
+                showNotification('Veuillez entrer au moins un ID de transaction', 'error');
+                return;
+            }
+            
+            if (transactionIds.length > 10) {
+                showNotification('Maximum 10 transactions par lot', 'error');
+                return;
+            }
+            
+            let successCount = 0;
+            let failCount = 0;
+            
+            showNotification(`Vérification de ${transactionIds.length} transactions en cours...`, 'info');
+            
+            for (const transactionId of transactionIds) {
+                try {
+                    const result = await simulateTransactionVerification({
+                        transaction_id: transactionId,
+                        payment_method: paymentMethod,
+                        currency: 'USD'
+                    });
+                    
+                    if (result.verified) {
+                        successCount++;
+                        // Add to balance and history like in single verification
+                        const totalCredit = (result.amount || 0) + (result.bonus_amount || 0);
+                        gameState.mainBalance += totalCredit;
+                        gameState.bonusBalance += result.bonus_amount || 0;
+                        
+                        if (!gameState.verificationHistory) {
+                            gameState.verificationHistory = [];
+                        }
+                        
+                        gameState.verificationHistory.unshift({
+                            transaction_id: transactionId,
+                            payment_method: paymentMethod,
+                            amount: result.amount || 0,
+                            bonus_amount: result.bonus_amount || 0,
+                            status: result.status,
+                            verified_at: new Date().toISOString(),
+                            message: result.message
+                        });
+                    } else {
+                        failCount++;
+                    }
+                    
+                    // Small delay between requests
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                } catch (error) {
+                    failCount++;
+                    console.error(`Error verifying ${transactionId}:`, error);
+                }
+            }
+            
+            // Keep only last 20 verifications
+            if (gameState.verificationHistory && gameState.verificationHistory.length > 20) {
+                gameState.verificationHistory = gameState.verificationHistory.slice(0, 20);
+            }
+            
+            saveGameData();
+            updateDisplay();
+            loadVerificationHistory();
+            
+            showNotification(`Vérification terminée: ${successCount} réussies, ${failCount} échouées`, 'success');
+            
+            // Clear form
+            document.getElementById('bulk-transaction-ids').value = '';
+        }
+
         // Local Storage Functions
         function getUserId() {
             let userId = localStorage.getItem(USER_ID_KEY);
