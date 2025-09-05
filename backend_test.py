@@ -619,7 +619,7 @@ class mAInetAPITester:
         success, response = self.run_test(
             "Bulk Transaction Verification",
             "POST",
-            "admin/bulk-verify",
+            "admin/bulk-verify?payment_method=payeer",
             200,
             data=transaction_ids,
             headers={
