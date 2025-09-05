@@ -992,6 +992,29 @@
         </div>
     </div>
 
+    <!-- Miner Selection Modal -->
+    <div id="miner-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" onclick="closeMinerModal()">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="cyber-card max-w-4xl w-full max-h-[80vh] overflow-y-auto" onclick="event.stopPropagation()">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-white">
+                            <i data-lucide="cpu" class="icon text-orange-400"></i>
+                            <span style="margin-left: 8px;">Sélectionner un Mineur</span>
+                        </h2>
+                        <button onclick="closeMinerModal()" class="text-gray-400 hover:text-white">
+                            <i data-lucide="x" class="icon"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="available-miners">
+                        <!-- Available miners will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Container -->
     <div id="notification" class="notification"></div>
 
