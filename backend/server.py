@@ -17,6 +17,7 @@ import jwt
 from enum import Enum
 import json
 import asyncio
+import httpx
 
 # Import Supabase configuration
 from supabase_config import get_supabase_client, get_supabase_admin_client
