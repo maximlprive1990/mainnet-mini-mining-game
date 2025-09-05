@@ -435,6 +435,48 @@
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
         }
 
+        .mining-active {
+            animation: mining-pulse 2s infinite;
+        }
+
+        @keyframes mining-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .installed-miner {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid var(--cyber-green);
+        }
+
+        .installed-miner .miner-name {
+            color: var(--cyber-green);
+        }
+
+        .bonus-tag {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 0.6rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .slot-content {
+            text-align: center;
+            padding: 8px;
+        }
+
+        .mining-slot.empty {
+            border-style: dashed;
+        }
+
+        .mining-slot.occupied {
+            border-style: solid;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
         .user-info-bar {
             background: var(--card-bg);
             border: 1px solid var(--cyber-border);
