@@ -1234,6 +1234,12 @@
             // Initialize game data
             loadGameData();
             
+            // Initialize mining and referral systems
+            initializeReferralSystem();
+            updateRackDisplay();
+            updateMiningStats();
+            updateMinersInventory();
+            
             // Start countdown timer
             updateCountdown();
             setInterval(updateCountdown, 1000);
@@ -1243,6 +1249,9 @@
             
             // Start auto mining
             setInterval(autoMining, 1000);
+            
+            // Process referral earnings
+            setInterval(processReferralEarnings, 60000); // Every minute
             
             // Periodic save
             setInterval(saveGameData, 30000);
