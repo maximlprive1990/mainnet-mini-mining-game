@@ -743,7 +743,8 @@
                 if (error) throw error;
 
                 if (data.user && !data.user.email_confirmed_at) {
-                    showNotification('Vérifiez votre email pour confirmer l\'inscription !', 'success');
+                    // Show custom popup with message about email verification
+                    showEmailVerificationPopup();
                 } else {
                     currentUser = data.user;
                     authToken = data.session.access_token;
@@ -758,6 +759,109 @@
             } finally {
                 registerBtn.innerHTML = '<span>S\'Inscrire</span>';
                 registerBtn.disabled = false;
+            }
+        }
+
+        function showEmailVerificationPopup() {
+            // Create popup overlay
+            const popupOverlay = document.createElement('div');
+            popupOverlay.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4';
+            popupOverlay.id = 'email-verification-popup';
+            
+            popupOverlay.innerHTML = `
+                <div class="cyber-card max-w-md w-full" onclick="event.stopPropagation()">
+                    <div class="p-6">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-600 flex items-center justify-center">
+                                <i data-lucide="mail" class="icon text-white text-2xl"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-white mb-2">Vérification Email Requise</h2>
+                        </div>
+                        
+                        <div class="bg-yellow-900 border border-yellow-600 rounded-lg p-4 mb-6">
+                            <div class="flex items-start space-x-3">
+                                <i data-lucide="alert-triangle" class="icon text-yellow-400 mt-0.5 flex-shrink-0"></i>
+                                <div class="text-yellow-100 text-sm">
+                                    <p class="font-semibold mb-2">IMPORTANT - Confirmation requise</p>
+                                    <p class="mb-3">
+                                        Après votre inscription, vous devez <strong>vous rendre dans vos messages</strong> 
+                                        pour autoriser et confirmer ce site web mAInet.
+                                    </p>
+                                    <div class="bg-yellow-800 rounded p-2 text-center">
+                                        <strong>📧 Vérifiez votre boîte email maintenant !</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <p class="text-sm text-gray-300">
+                                <strong>Étapes à suivre:</strong>
+                            </p>
+                            <ol class="text-sm text-gray-300 space-y-2 ml-4">
+                                <li>1. Ouvrez votre boîte email</li>
+                                <li>2. Cherchez l'email de confirmation de Supabase</li>
+                                <li>3. Cliquez sur le lien de confirmation</li>
+                                <li>4. Autorisez et confirmez le site mAInet</li>
+                                <li>5. Revenez sur cette page pour vous connecter</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="mt-6 flex space-x-3">
+                            <button onclick="closeEmailVerificationPopup()" class="cyber-button flex-1">
+                                <i data-lucide="check" class="icon"></i>
+                                <span style="margin-left: 8px;">J'ai compris</span>
+                            </button>
+                            <button onclick="resendConfirmationEmail()" class="cyber-button flex-1 bg-blue-600">
+                                <i data-lucide="refresh-cw" class="icon"></i>
+                                <span style="margin-left: 8px;">Renvoyer Email</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popupOverlay);
+            lucide.createIcons();
+        }
+
+        function closeEmailVerificationPopup() {
+            const popup = document.getElementById('email-verification-popup');
+            if (popup) {
+                popup.remove();
+            }
+            showNotification('N\'oubliez pas de vérifier votre email !', 'info');
+        }
+
+        async function resendConfirmationEmail() {
+            try {
+                const email = document.getElementById('register-email').value;
+                if (!email) {
+                    showNotification('Email non trouvé', 'error');
+                    return;
+                }
+
+                const { error } = await supabaseClient.auth.resend({
+                    type: 'signup',
+                    email: email
+                });
+
+                if (error) throw error;
+
+                showNotification('Email de confirmation renvoyé !', 'success');
+                
+                // Update popup text
+                const popup = document.getElementById('email-verification-popup');
+                if (popup) {
+                    const alertDiv = popup.querySelector('.bg-yellow-800');
+                    if (alertDiv) {
+                        alertDiv.innerHTML = '<strong>📧 Email renvoyé ! Vérifiez maintenant !</strong>';
+                    }
+                }
+
+            } catch (error) {
+                console.error('Resend error:', error);
+                showNotification('Erreur lors du renvoi: ' + error.message, 'error');
             }
         }
 
