@@ -1801,6 +1801,465 @@
                 location.reload();
             }
         }
+
+        // =================== MINING SYSTEM ===================
+
+        function openMinerSelection(rack, slot) {
+            if (!gameState.mining_rigs.racks[rack].owned) {
+                showNotification('Vous devez d\'abord acheter ce rack!', 'error');
+                return;
+            }
+
+            selectedRack = rack;
+            selectedSlot = slot;
+            
+            // Populate available miners
+            const availableMinersDiv = document.getElementById('available-miners');
+            availableMinersDiv.innerHTML = '';
+
+            // Show owned miners that aren't currently installed
+            const availableMiners = gameState.mining_rigs.miners.filter(miner => !miner.installed);
+            
+            if (availableMiners.length === 0) {
+                availableMinersDiv.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <p style="color: #ccc;">Aucun mineur disponible</p>
+                        <button class="cyber-button mt-2" onclick="showMinerShop()">
+                            Acheter des Mineurs
+                        </button>
+                    </div>
+                `;
+            } else {
+                availableMiners.forEach(miner => {
+                    const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
+                    availableMinersDiv.innerHTML += createMinerCard(minerData, true);
+                });
+            }
+
+            // Show currently installed miner if any
+            const currentMiner = gameState.mining_rigs.racks[rack].slots[slot];
+            if (currentMiner) {
+                const minerData = MINERS_DATABASE.find(m => m.id === currentMiner.id);
+                availableMinersDiv.innerHTML = `
+                    <div class="col-span-full mb-4">
+                        <h4 style="color: white; font-weight: 600; margin-bottom: 10px;">Mineur Actuellement Installé:</h4>
+                        <div class="miner-card installed-miner" onclick="removeMiner(${rack}, ${slot})">
+                            ${createMinerCardContent(minerData)}
+                            <div class="mt-2 text-center">
+                                <button class="cyber-button text-xs" style="background: #dc2626;">
+                                    <i data-lucide="trash-2" class="icon"></i>
+                                    <span style="margin-left: 4px;">Retirer</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ` + availableMinersDiv.innerHTML;
+            }
+
+            document.getElementById('miner-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeMinerModal() {
+            document.getElementById('miner-modal').classList.add('hidden');
+            selectedRack = null;
+            selectedSlot = null;
+        }
+
+        function createMinerCard(minerData, clickable = false) {
+            const clickHandler = clickable ? `onclick="installMiner('${minerData.id}')"` : '';
+            return `
+                <div class="miner-card rarity-${minerData.rarity}" ${clickHandler}>
+                    ${createMinerCardContent(minerData)}
+                </div>
+            `;
+        }
+
+        function createMinerCardContent(minerData) {
+            const rarityColors = {
+                common: '#6b7280',
+                uncommon: '#10b981', 
+                rare: '#3b82f6',
+                epic: '#8b5cf6',
+                legendary: '#f59e0b',
+                mythic: '#ef4444'
+            };
+
+            return `
+                <div class="bonus-tag" style="position: absolute; top: 4px; right: 4px; background: ${rarityColors[minerData.rarity]}; color: white; font-size: 0.6rem; padding: 2px 4px; border-radius: 4px;">
+                    ${minerData.rarity.toUpperCase()}
+                </div>
+                <h4 class="miner-name" style="font-weight: 600; color: white; font-size: 0.9rem;">${minerData.name}</h4>
+                <p style="font-size: 0.75rem; color: #ccc; margin-top: 4px;">${minerData.description}</p>
+                <div class="miner-stats" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 0.75rem;">
+                    <span style="color: var(--cyber-green); font-weight: bold;">${minerData.hashrate} H/s</span>
+                    <span style="color: var(--cyber-yellow);">${minerData.power}W</span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--cyber-blue); margin-top: 4px;">${minerData.bonus}</div>
+                <div style="font-size: 0.75rem; color: var(--cyber-green); margin-top: 4px;">${minerData.price} tokens</div>
+            `;
+        }
+
+        function installMiner(minerId) {
+            if (!selectedRack || !selectedSlot) return;
+
+            const miner = gameState.mining_rigs.miners.find(m => m.id === minerId && !m.installed);
+            if (!miner) return;
+
+            // Install the miner
+            miner.installed = true;
+            gameState.mining_rigs.racks[selectedRack].slots[selectedSlot] = miner;
+
+            // Update the slot display
+            updateRackDisplay();
+            updateMiningStats();
+            closeMinerModal();
+            
+            const minerData = MINERS_DATABASE.find(m => m.id === minerId);
+            showNotification(`${minerData.name} installé avec succès!`, 'success');
+            saveGameData();
+        }
+
+        function removeMiner(rack, slot) {
+            const miner = gameState.mining_rigs.racks[rack].slots[slot];
+            if (!miner) return;
+
+            // Remove from rack
+            delete gameState.mining_rigs.racks[rack].slots[slot];
+            
+            // Mark as available in inventory
+            const inventoryMiner = gameState.mining_rigs.miners.find(m => m.id === miner.id);
+            if (inventoryMiner) {
+                inventoryMiner.installed = false;
+            }
+
+            updateRackDisplay();
+            updateMiningStats();
+            closeMinerModal();
+            
+            const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
+            showNotification(`${minerData.name} retiré du rack`, 'success');
+            saveGameData();
+        }
+
+        function buyRack(rackId) {
+            const rackPrices = { 1: 500, 2: 1200, 3: 2500, 4: 5000 };
+            const price = rackPrices[rackId];
+
+            if (gameState.current_coins < price) {
+                showNotification('Solde insuffisant pour acheter ce rack!', 'error');
+                return;
+            }
+
+            // Check if previous rack is owned (progression system)
+            if (rackId > 1 && !gameState.mining_rigs.racks[rackId - 1].owned) {
+                showNotification('Vous devez acheter les racks précédents d\'abord!', 'error');
+                return;
+            }
+
+            gameState.current_coins -= price;
+            gameState.main_balance -= price;
+            gameState.mining_rigs.racks[rackId].owned = true;
+
+            updateRackDisplay();
+            updateDisplay();
+            saveGameData();
+            
+            showNotification(`Rack ${rackId} acheté avec succès!`, 'success');
+        }
+
+        function updateRackDisplay() {
+            for (let rackId = 1; rackId <= 4; rackId++) {
+                const rack = gameState.mining_rigs.racks[rackId];
+                const buyButton = document.getElementById(`buy-rack-${rackId}`);
+                
+                if (rack.owned) {
+                    buyButton.textContent = 'Possédé';
+                    buyButton.disabled = true;
+                    buyButton.style.background = '#16a34a';
+                    
+                    // Update slots
+                    const rackElement = document.getElementById(`rack-${rackId}`);
+                    const slots = rackElement.querySelectorAll('.mining-slot');
+                    
+                    slots.forEach((slot, index) => {
+                        const slotNumber = index + 1;
+                        const installedMiner = rack.slots[slotNumber];
+                        
+                        if (installedMiner) {
+                            const minerData = MINERS_DATABASE.find(m => m.id === installedMiner.id);
+                            slot.className = 'mining-slot occupied mining-active';
+                            slot.innerHTML = `
+                                <div class="slot-content">
+                                    <div style="font-size: 0.75rem; font-weight: 600; color: var(--cyber-green);">${minerData.name}</div>
+                                    <div style="font-size: 0.7rem; color: var(--cyber-yellow);">${minerData.hashrate} H/s</div>
+                                </div>
+                            `;
+                        } else {
+                            slot.className = 'mining-slot empty';
+                            slot.innerHTML = `
+                                <div class="slot-content">
+                                    <i data-lucide="plus" class="icon text-gray-500"></i>
+                                    <span class="text-xs text-gray-500">Slot Vide</span>
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                    // Enable/disable buy button based on prerequisites
+                    const canBuy = rackId === 1 || gameState.mining_rigs.racks[rackId - 1].owned;
+                    buyButton.disabled = !canBuy;
+                }
+            }
+            
+            lucide.createIcons();
+        }
+
+        function updateMiningStats() {
+            let totalHashrate = 0;
+            let totalPower = 0;
+            let activeMiners = 0;
+            let miningRevenue = 0;
+
+            // Calculate totals from all installed miners
+            Object.values(gameState.mining_rigs.racks).forEach(rack => {
+                Object.values(rack.slots).forEach(miner => {
+                    const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
+                    if (minerData) {
+                        totalHashrate += minerData.hashrate;
+                        totalPower += Math.max(0, minerData.power); // Don't count negative (power generating)
+                        activeMiners++;
+                        
+                        // Base revenue: 0.1 tokens per H/s per minute
+                        let revenue = minerData.hashrate * 0.1;
+                        
+                        // Apply bonuses
+                        if (minerData.bonus.includes('+') && minerData.bonus.includes('tokens')) {
+                            const bonusMatch = minerData.bonus.match(/\+(\d+)%\s*tokens/);
+                            if (bonusMatch) {
+                                const bonusPercent = parseInt(bonusMatch[1]) / 100;
+                                revenue *= (1 + bonusPercent);
+                            }
+                        }
+                        
+                        miningRevenue += revenue;
+                    }
+                });
+            });
+
+            gameState.mining_rigs.totalHashrate = totalHashrate;
+            gameState.mining_rigs.totalPower = totalPower;
+            gameState.mining_rigs.miningRevenue = miningRevenue;
+
+            // Update displays
+            document.getElementById('mining-total-hashrate').textContent = totalHashrate.toFixed(2) + ' H/s';
+            document.getElementById('total-hashrate').textContent = totalHashrate.toFixed(2) + ' H/s';
+            document.getElementById('mining-active-miners').textContent = activeMiners;
+            document.getElementById('mining-revenue').textContent = miningRevenue.toFixed(2);
+            
+            const efficiency = totalPower > 0 ? Math.round((totalHashrate / totalPower) * 100) : 100;
+            document.getElementById('mining-efficiency').textContent = efficiency + '%';
+            document.getElementById('mining-power-consumption').textContent = totalPower + 'W';
+
+            // Add mining revenue to auto mining rate
+            gameState.auto_mining_rate = (gameState.auto_mining_rate || 0) + miningRevenue;
+        }
+
+        function showMinerShop() {
+            // Create a simple miner shop
+            const shopHTML = MINERS_DATABASE.map(miner => `
+                <div class="miner-card rarity-${miner.rarity}" onclick="buyMiner('${miner.id}')">
+                    ${createMinerCardContent(miner)}
+                    <div class="mt-2 text-center">
+                        <button class="cyber-button text-xs">Acheter</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const availableMinersDiv = document.getElementById('available-miners');
+            availableMinersDiv.innerHTML = `
+                <div class="col-span-full mb-4">
+                    <h4 style="color: white; font-weight: 600; margin-bottom: 15px;">Boutique de Mineurs</h4>
+                </div>
+                ${shopHTML}
+            `;
+
+            document.getElementById('miner-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function buyMiner(minerId) {
+            const minerData = MINERS_DATABASE.find(m => m.id === minerId);
+            if (!minerData) return;
+
+            if (gameState.current_coins < minerData.price) {
+                showNotification('Solde insuffisant pour acheter ce mineur!', 'error');
+                return;
+            }
+
+            gameState.current_coins -= minerData.price;
+            gameState.main_balance -= minerData.price;
+            
+            // Add to inventory
+            gameState.mining_rigs.miners.push({
+                id: minerId,
+                installed: false,
+                purchaseDate: new Date().toISOString()
+            });
+
+            updateDisplay();
+            updateMinersInventory();
+            saveGameData();
+            
+            showNotification(`${minerData.name} acheté et ajouté à l'inventaire!`, 'success');
+            closeMinerModal();
+        }
+
+        function updateMinersInventory() {
+            const inventoryDiv = document.getElementById('miners-inventory');
+            if (!inventoryDiv) return;
+
+            const uninstalledMiners = gameState.mining_rigs.miners.filter(miner => !miner.installed);
+            
+            if (uninstalledMiners.length === 0) {
+                inventoryDiv.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <p style="color: #ccc;">Inventaire vide</p>
+                        <p style="color: #aaa; font-size: 0.9rem;">Achetez des mineurs pour commencer!</p>
+                    </div>
+                `;
+            } else {
+                inventoryDiv.innerHTML = uninstalledMiners.map(miner => {
+                    const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
+                    return createMinerCard(minerData);
+                }).join('');
+            }
+
+            lucide.createIcons();
+        }
+
+        // =================== REFERRAL SYSTEM ===================
+
+        function initializeReferralSystem() {
+            // Check URL for referral code
+            const urlParams = new URLSearchParams(window.location.search);
+            const referralCode = urlParams.get('ref');
+            
+            if (referralCode && referralCode !== gameState.referral_system.referral_code) {
+                processReferral(referralCode);
+            }
+            
+            updateReferralDisplay();
+        }
+
+        function processReferral(referralCode) {
+            // Check if user was already referred
+            if (gameState.referral_system.referred_by) {
+                return;
+            }
+            
+            // In a real system, you'd validate the referral code
+            // For now, we'll simulate it
+            gameState.referral_system.referred_by = referralCode;
+            
+            // Give signup bonus to new user
+            gameState.current_coins += 200;
+            gameState.main_balance += 200;
+            gameState.bonus_balance += 200;
+            
+            showNotification('🎉 Bonus de parrainage reçu: +200 tokens!', 'success');
+            
+            // In a real system, you'd also credit the referrer
+            // simulateReferrerReward(referralCode);
+            
+            saveGameData();
+        }
+
+        function updateReferralDisplay() {
+            const referralCode = gameState.referral_system.referral_code;
+            const referralLink = `${window.location.origin}${window.location.pathname}?ref=${referralCode}`;
+            
+            document.getElementById('referral-link').value = referralLink;
+            document.getElementById('total-referrals').textContent = gameState.referral_system.total_referrals;
+            document.getElementById('active-referrals').textContent = gameState.referral_system.active_referrals;
+            document.getElementById('referral-earnings').textContent = gameState.referral_system.referral_earnings.toFixed(2);
+            
+            updateReferralHistory();
+        }
+
+        function copyReferralLink() {
+            const referralLink = document.getElementById('referral-link');
+            referralLink.select();
+            document.execCommand('copy');
+            showNotification('Lien de parrainage copié!', 'success');
+        }
+
+        function updateReferralHistory() {
+            const historyDiv = document.getElementById('referral-history');
+            const noReferralsDiv = document.getElementById('no-referrals');
+            
+            if (!gameState.referral_system.referrals || gameState.referral_system.referrals.length === 0) {
+                historyDiv.innerHTML = noReferralsDiv.outerHTML;
+                return;
+            }
+            
+            let historyHTML = '';
+            gameState.referral_system.referrals.forEach((referral, index) => {
+                const joinDate = new Date(referral.joined_at).toLocaleDateString('fr-FR');
+                const lastActive = new Date(referral.last_active).toLocaleDateString('fr-FR');
+                const isActive = (new Date() - new Date(referral.last_active)) < 7 * 24 * 60 * 60 * 1000; // 7 days
+                
+                historyHTML += `
+                    <div style="border: 1px solid var(--cyber-border); border-radius: 8px; padding: 15px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <h4 style="color: white; font-weight: 600;">${referral.username}</h4>
+                                <p style="color: #ccc; font-size: 0.9rem;">Rejoint le ${joinDate}</p>
+                            </div>
+                            <div class="text-center">
+                                <span style="color: ${isActive ? 'var(--cyber-green)' : '#ccc'}; font-size: 0.8rem;">
+                                    ${isActive ? '🟢 Actif' : '⚫ Inactif'}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="color: #ccc;">Gains générés:</span>
+                            <span style="color: var(--cyber-green); font-weight: 600;">${referral.earnings_generated.toFixed(2)} tokens</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="color: #ccc;">Dernière activité:</span>
+                            <span style="color: #aaa;">${lastActive}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            historyDiv.innerHTML = historyHTML;
+        }
+
+        // Simulate earning from referrals (called periodically)
+        function processReferralEarnings() {
+            if (!gameState.referral_system.referrals) return;
+            
+            let totalEarnings = 0;
+            gameState.referral_system.referrals.forEach(referral => {
+                // Simulate 10% of referral's earnings
+                const newEarnings = Math.random() * 0.5; // Random small amount
+                referral.earnings_generated += newEarnings;
+                totalEarnings += newEarnings;
+            });
+            
+            if (totalEarnings > 0) {
+                gameState.referral_system.referral_earnings += totalEarnings;
+                gameState.current_coins += totalEarnings;
+                gameState.main_balance += totalEarnings;
+                
+                // Update displays
+                if (document.getElementById('tab-referral').classList.contains('active')) {
+                    updateReferralDisplay();
+                }
+            }
+        }
     </script>
 </body>
 </html>
