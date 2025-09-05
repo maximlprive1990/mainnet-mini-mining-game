@@ -435,6 +435,312 @@ class mAInetAPITester:
             return len(affordable_products) >= 4  # Should have at least 4 affordable products
         return False
 
+    # IDTX VERIFICATION SYSTEM TESTS
+    def test_verify_payeer_transaction(self):
+        """Test verifying a Payeer transaction"""
+        transaction_id = f"PAYEER_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        success, response = self.run_test(
+            "Verify Payeer Transaction",
+            "POST",
+            "verify-transaction",
+            200,
+            data={
+                "transaction_id": transaction_id,
+                "payment_method": "payeer",
+                "amount": 100.0,
+                "currency": "USD"
+            }
+        )
+        if success:
+            expected_keys = ['transaction_id', 'verified', 'status', 'amount', 'bonus_amount', 'message']
+            for key in expected_keys:
+                if key not in response:
+                    print(f"   ⚠️  Missing key in verification response: {key}")
+            
+            if response.get('verified'):
+                print(f"   ✅ Transaction verified successfully")
+                print(f"   Amount: ${response.get('amount', 0)}")
+                print(f"   Bonus (17%): ${response.get('bonus_amount', 0)}")
+                
+                # Store for duplicate test
+                self.verified_transaction_id = transaction_id
+                self.verified_amount = response.get('amount', 0)
+                self.verified_bonus = response.get('bonus_amount', 0)
+            else:
+                print(f"   ❌ Transaction not verified: {response.get('message', 'Unknown error')}")
+        
+        return success
+
+    def test_verify_faucetpay_transaction(self):
+        """Test verifying a FaucetPay transaction"""
+        transaction_id = f"FAUCETPAY_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        success, response = self.run_test(
+            "Verify FaucetPay Transaction",
+            "POST",
+            "verify-transaction",
+            200,
+            data={
+                "transaction_id": transaction_id,
+                "payment_method": "faucetpay",
+                "amount": 50.0,
+                "currency": "USD"
+            }
+        )
+        if success:
+            if response.get('verified'):
+                print(f"   ✅ FaucetPay transaction verified successfully")
+                print(f"   Amount: ${response.get('amount', 0)}")
+                print(f"   Bonus (17%): ${response.get('bonus_amount', 0)}")
+            else:
+                print(f"   ❌ FaucetPay transaction not verified: {response.get('message', 'Unknown error')}")
+        
+        return success
+
+    def test_bonus_calculation(self):
+        """Test that 17% bonus is calculated correctly"""
+        transaction_id = f"BONUS_TEST_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        test_amount = 200.0
+        expected_bonus = round(test_amount * 0.17, 2)  # 17% bonus
+        
+        success, response = self.run_test(
+            "Test Bonus Calculation (17%)",
+            "POST",
+            "verify-transaction",
+            200,
+            data={
+                "transaction_id": transaction_id,
+                "payment_method": "payeer",
+                "amount": test_amount,
+                "currency": "USD"
+            }
+        )
+        
+        if success and response.get('verified'):
+            actual_bonus = response.get('bonus_amount', 0)
+            if abs(actual_bonus - expected_bonus) < 0.01:  # Allow for small rounding differences
+                print(f"   ✅ Bonus calculation correct: ${actual_bonus} (expected ${expected_bonus})")
+                return True
+            else:
+                print(f"   ❌ Bonus calculation incorrect: ${actual_bonus} (expected ${expected_bonus})")
+                return False
+        
+        return success
+
+    def test_duplicate_transaction_prevention(self):
+        """Test that duplicate transactions are prevented"""
+        if not hasattr(self, 'verified_transaction_id'):
+            print("   ⚠️  No previous transaction to test duplicate with")
+            return False
+        
+        # Try to verify the same transaction again
+        success, response = self.run_test(
+            "Test Duplicate Transaction Prevention",
+            "POST",
+            "verify-transaction",
+            200,
+            data={
+                "transaction_id": self.verified_transaction_id,
+                "payment_method": "payeer",
+                "amount": 100.0,
+                "currency": "USD"
+            }
+        )
+        
+        if success:
+            if "already processed" in response.get('message', '').lower():
+                print(f"   ✅ Duplicate transaction correctly detected and prevented")
+                return True
+            else:
+                print(f"   ❌ Duplicate transaction not detected: {response.get('message', '')}")
+                return False
+        
+        return False
+
+    def test_verification_history(self):
+        """Test getting verification history"""
+        success, response = self.run_test(
+            "Get Verification History",
+            "GET",
+            "verification-history",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} verification records")
+            
+            # Check if our previous verifications are in the history
+            if len(response) > 0:
+                latest_verification = response[0]
+                expected_keys = ['id', 'user_id', 'transaction_id', 'amount', 'payment_method', 'status', 'created_at']
+                for key in expected_keys:
+                    if key not in latest_verification:
+                        print(f"   ⚠️  Missing key in verification record: {key}")
+                
+                print(f"   Latest verification: {latest_verification.get('transaction_id', 'Unknown')} - {latest_verification.get('status', 'Unknown')}")
+            
+            return True
+        
+        return success
+
+    def test_admin_verification_stats(self):
+        """Test admin verification statistics"""
+        success, response = self.run_test(
+            "Get Admin Verification Stats",
+            "GET",
+            "admin/verification-stats",
+            200
+        )
+        
+        if success:
+            expected_keys = ['total_verifications', 'verified', 'failed', 'pending', 'total_amount_verified', 'total_bonus_paid']
+            for key in expected_keys:
+                if key not in response:
+                    print(f"   ⚠️  Missing key in admin stats: {key}")
+            
+            print(f"   Total verifications: {response.get('total_verifications', 0)}")
+            print(f"   Verified: {response.get('verified', 0)}")
+            print(f"   Failed: {response.get('failed', 0)}")
+            print(f"   Total amount verified: ${response.get('total_amount_verified', 0)}")
+            print(f"   Total bonus paid: ${response.get('total_bonus_paid', 0)}")
+            
+            return True
+        
+        return success
+
+    def test_bulk_verification(self):
+        """Test bulk transaction verification"""
+        # Create multiple transaction IDs for bulk verification
+        transaction_ids = [
+            f"BULK_1_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            f"BULK_2_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            f"BULK_3_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        ]
+        
+        success, response = self.run_test(
+            "Bulk Transaction Verification",
+            "POST",
+            "admin/bulk-verify",
+            200,
+            data=transaction_ids,
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {self.token}' if self.token else None
+            }
+        )
+        
+        if success:
+            processed = response.get('processed', 0)
+            results = response.get('results', [])
+            
+            print(f"   Processed {processed} transactions")
+            
+            successful_verifications = sum(1 for r in results if r.get('success', False))
+            print(f"   Successful verifications: {successful_verifications}")
+            
+            for result in results:
+                status = "✅" if result.get('success') else "❌"
+                print(f"   {status} {result.get('transaction_id', 'Unknown')}: {result.get('status', 'Unknown')}")
+            
+            return processed == len(transaction_ids)
+        
+        return success
+
+    def test_invalid_transaction(self):
+        """Test handling of invalid/not found transactions"""
+        invalid_transaction_id = "INVALID_TRANSACTION_12345"
+        
+        success, response = self.run_test(
+            "Test Invalid Transaction Handling",
+            "POST",
+            "verify-transaction",
+            200,
+            data={
+                "transaction_id": invalid_transaction_id,
+                "payment_method": "payeer",
+                "amount": 100.0,
+                "currency": "USD"
+            }
+        )
+        
+        if success:
+            if not response.get('verified', True):  # Should be False for invalid transaction
+                print(f"   ✅ Invalid transaction correctly rejected")
+                print(f"   Status: {response.get('status', 'Unknown')}")
+                print(f"   Message: {response.get('message', 'No message')}")
+                return True
+            else:
+                print(f"   ❌ Invalid transaction was incorrectly verified")
+                return False
+        
+        return success
+
+    def test_balance_update_after_verification(self):
+        """Test that user balance is updated after successful verification"""
+        # Get current balance
+        success, user_data = self.run_test(
+            "Get Current Balance",
+            "GET",
+            "auth/me",
+            200
+        )
+        
+        if not success:
+            return False
+        
+        initial_balance = user_data.get('balance', 0)
+        initial_bonus_balance = user_data.get('bonus_balance', 0)
+        
+        print(f"   Initial balance: ${initial_balance}")
+        print(f"   Initial bonus balance: ${initial_bonus_balance}")
+        
+        # Verify a new transaction
+        transaction_id = f"BALANCE_TEST_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        test_amount = 75.0
+        
+        success, verify_response = self.run_test(
+            "Verify Transaction for Balance Test",
+            "POST",
+            "verify-transaction",
+            200,
+            data={
+                "transaction_id": transaction_id,
+                "payment_method": "faucetpay",
+                "amount": test_amount,
+                "currency": "USD"
+            }
+        )
+        
+        if not success or not verify_response.get('verified'):
+            print(f"   ❌ Transaction verification failed for balance test")
+            return False
+        
+        # Get updated balance
+        success, updated_user_data = self.run_test(
+            "Get Updated Balance",
+            "GET",
+            "auth/me",
+            200
+        )
+        
+        if success:
+            new_balance = updated_user_data.get('balance', 0)
+            new_bonus_balance = updated_user_data.get('bonus_balance', 0)
+            
+            print(f"   New balance: ${new_balance}")
+            print(f"   New bonus balance: ${new_bonus_balance}")
+            
+            expected_total_increase = test_amount + (test_amount * 0.17)  # Amount + 17% bonus
+            actual_total_increase = (new_balance - initial_balance) + (new_bonus_balance - initial_bonus_balance)
+            
+            if abs(actual_total_increase - expected_total_increase) < 0.01:
+                print(f"   ✅ Balance updated correctly: +${actual_total_increase}")
+                return True
+            else:
+                print(f"   ❌ Balance update incorrect: +${actual_total_increase} (expected +${expected_total_increase})")
+                return False
+        
+        return success
+
 def main():
     print("🚀 Starting mAInet API Testing...")
     print("=" * 50)
