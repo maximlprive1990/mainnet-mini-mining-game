@@ -2793,7 +2793,11 @@
         }
 
         function saveGameData() {
-            localStorage.setItem(GAME_DATA_KEY, JSON.stringify(gameState));
+            const dataToSave = {
+                ...gameState,
+                miningRigs: miningRigs
+            };
+            localStorage.setItem(GAME_DATA_KEY, JSON.stringify(dataToSave));
         }
 
         function generateReferralCode() {
