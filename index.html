@@ -3183,8 +3183,15 @@
 
         // Auto mining
         function autoMining() {
-            if (gameState.autoMiningRate > 0) {
-                gameState.gameBalance += gameState.autoMiningRate / 60;
+            let totalAutoMining = gameState.autoMiningRate || 0;
+            
+            // Add mining rigs revenue
+            if (miningRigs && miningRigs.miningRevenue) {
+                totalAutoMining += miningRigs.miningRevenue;
+            }
+            
+            if (totalAutoMining > 0) {
+                gameState.gameBalance += totalAutoMining / 60;
                 updateDisplay();
                 saveGameData();
             }
