@@ -2838,6 +2838,11 @@
             
             // Load verification history on initialization
             loadVerificationHistory();
+            
+            // Initialize mining rigs display
+            updateRackDisplay();
+            updateMiningStats();
+            updateMinersInventory();
         }
 
         function updateEnergyFromTime() {
