@@ -2257,6 +2257,526 @@
             document.getElementById('bulk-transaction-ids').value = '';
         }
 
+        // Mining Rigs System
+        const MINERS_DATABASE = [
+            // Common Miners (0.5-1.5 H/s)
+            {
+                id: 'basic_cpu',
+                name: 'CPU Basique',
+                rarity: 'common',
+                hashrate: 0.5,
+                power: 65,
+                price: 100,
+                bonus: 'Aucun',
+                description: 'Un processeur de base pour débuter le mining'
+            },
+            {
+                id: 'entry_gpu',
+                name: 'GPU Entrée',
+                rarity: 'common',
+                hashrate: 0.8,
+                power: 120,
+                price: 200,
+                bonus: 'Aucun',
+                description: 'Carte graphique basique pour mining'
+            },
+            {
+                id: 'dual_core',
+                name: 'Dual Core Pro',
+                rarity: 'common',
+                hashrate: 1.2,
+                power: 95,
+                price: 300,
+                bonus: '+5% tokens/min',
+                description: 'Processeur dual core optimisé'
+            },
+
+            // Uncommon Miners (1.5-3.0 H/s)
+            {
+                id: 'quad_core',
+                name: 'Quad Core Elite',
+                rarity: 'uncommon',
+                hashrate: 2.0,
+                power: 140,
+                price: 500,
+                bonus: '+10% tokens/min',
+                description: 'Processeur quad core haute performance'
+            },
+            {
+                id: 'gtx_miner',
+                name: 'GTX Mining Beast',
+                rarity: 'uncommon',
+                hashrate: 2.5,
+                power: 180,
+                price: 700,
+                bonus: '+15% hashrate',
+                description: 'GPU GTX optimisé pour le mining'
+            },
+            {
+                id: 'asic_basic',
+                name: 'ASIC Starter',
+                rarity: 'uncommon',
+                hashrate: 3.0,
+                power: 220,
+                price: 900,
+                bonus: 'Faible consommation',
+                description: 'Premier ASIC abordable'
+            },
+
+            // Rare Miners (3.0-6.0 H/s)
+            {
+                id: 'rtx_3080',
+                name: 'RTX 3080 Mining',
+                rarity: 'rare',
+                hashrate: 4.2,
+                power: 320,
+                price: 1500,
+                bonus: '+25% rendement',
+                description: 'RTX 3080 pour mining intensif'
+            },
+            {
+                id: 'asic_s19',
+                name: 'Antminer S19',
+                rarity: 'rare',
+                hashrate: 5.0,
+                power: 400,
+                price: 2000,
+                bonus: '+30% efficacité',
+                description: 'ASIC professionnel S19'
+            },
+            {
+                id: 'custom_rig',
+                name: 'Rig Custom Pro',
+                rarity: 'rare',
+                hashrate: 5.8,
+                power: 380,
+                price: 2500,
+                bonus: '+20% tokens, -10% power',
+                description: 'Rig assemblé sur mesure'
+            },
+
+            // Epic Miners (6.0-12.0 H/s)
+            {
+                id: 'rtx_4090',
+                name: 'RTX 4090 Ultra',
+                rarity: 'epic',
+                hashrate: 8.5,
+                power: 450,
+                price: 4000,
+                bonus: '+40% rendement global',
+                description: 'Le nec plus ultra des GPU'
+            },
+            {
+                id: 'asic_s21',
+                name: 'Antminer S21 Pro',
+                rarity: 'epic',
+                hashrate: 10.0,
+                power: 520,
+                price: 5000,
+                bonus: '+50% hashrate, +25% tokens',
+                description: 'ASIC dernière génération'
+            },
+            {
+                id: 'quantum_chip',
+                name: 'Puce Quantique',
+                rarity: 'epic',
+                hashrate: 12.0,
+                power: 300,
+                price: 7500,
+                bonus: 'Technologie quantique',
+                description: 'Mining avec processeur quantique'
+            },
+
+            // Legendary Miners (12.0-25.0 H/s)
+            {
+                id: 'ai_processor',
+                name: 'Processeur IA',
+                rarity: 'legendary',
+                hashrate: 18.0,
+                power: 600,
+                price: 12000,
+                bonus: '+75% tokens, Auto-optimisation',
+                description: 'IA dédiée au mining crypto'
+            },
+            {
+                id: 'fusion_reactor',
+                name: 'Réacteur Fusion',
+                rarity: 'legendary',
+                hashrate: 22.0,
+                power: 0, // Self-powered
+                price: 20000,
+                bonus: 'Auto-alimenté, +100% tokens',
+                description: 'Énergie fusion pour mining illimité'
+            },
+
+            // Mythic Miners (25.0+ H/s)
+            {
+                id: 'black_hole',
+                name: 'Extracteur Trou Noir',
+                rarity: 'mythic',
+                hashrate: 50.0,
+                power: -100, // Generates power
+                price: 50000,
+                bonus: 'Génère de l\'énergie, +200% tokens',
+                description: 'Harnesses les trous noirs pour le mining'
+            },
+            {
+                id: 'mainet_core',
+                name: 'Cœur mAInet',
+                rarity: 'mythic',
+                hashrate: 100.0,
+                power: -500, // Massive power generation
+                price: 100000,
+                bonus: 'Source d\'énergie infinie, +500% tokens',
+                description: 'Le cœur même du réseau mAInet'
+            }
+        ];
+
+        let miningRigs = {
+            racks: {
+                1: { owned: false, slots: {} },
+                2: { owned: false, slots: {} },
+                3: { owned: false, slots: {} },
+                4: { owned: false, slots: {} }
+            },
+            miners: [], // User's miner inventory
+            totalHashrate: 0,
+            totalPower: 0,
+            miningRevenue: 0
+        };
+
+        let selectedRack = null;
+        let selectedSlot = null;
+
+        function openMinerSelection(rack, slot) {
+            if (!miningRigs.racks[rack].owned) {
+                showNotification('Vous devez d\'abord acheter ce rack!', 'error');
+                return;
+            }
+
+            selectedRack = rack;
+            selectedSlot = slot;
+            
+            // Populate available miners
+            const availableMinersDiv = document.getElementById('available-miners');
+            availableMinersDiv.innerHTML = '';
+
+            // Show owned miners that aren't currently installed
+            const availableMiners = miningRigs.miners.filter(miner => !miner.installed);
+            
+            if (availableMiners.length === 0) {
+                availableMinersDiv.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-gray-400">Aucun mineur disponible</p>
+                        <button class="cyber-button mt-2" onclick="showMinerShop()">
+                            Acheter des Mineurs
+                        </button>
+                    </div>
+                `;
+            } else {
+                availableMiners.forEach(miner => {
+                    const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
+                    availableMinersDiv.innerHTML += createMinerCard(minerData, true);
+                });
+            }
+
+            // Show currently installed miner if any
+            const currentMiner = miningRigs.racks[rack].slots[slot];
+            if (currentMiner) {
+                const minerData = MINERS_DATABASE.find(m => m.id === currentMiner.id);
+                availableMinersDiv.innerHTML = `
+                    <div class="col-span-full mb-4">
+                        <h4 class="text-white font-semibold mb-2">Mineur Actuellement Installé:</h4>
+                        <div class="miner-card installed-miner" onclick="removeMiner(${rack}, ${slot})">
+                            ${createMinerCardContent(minerData)}
+                            <div class="mt-2 text-center">
+                                <button class="cyber-button text-xs bg-red-600">
+                                    <i data-lucide="trash-2" class="icon"></i>
+                                    Retirer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ` + availableMinersDiv.innerHTML;
+            }
+
+            document.getElementById('miner-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeMinerModal() {
+            document.getElementById('miner-modal').classList.add('hidden');
+            selectedRack = null;
+            selectedSlot = null;
+        }
+
+        function createMinerCard(minerData, clickable = false) {
+            const clickHandler = clickable ? `onclick="installMiner('${minerData.id}')"` : '';
+            return `
+                <div class="miner-card rarity-${minerData.rarity}" ${clickHandler}>
+                    ${createMinerCardContent(minerData)}
+                </div>
+            `;
+        }
+
+        function createMinerCardContent(minerData) {
+            const rarityColors = {
+                common: '#6b7280',
+                uncommon: '#10b981', 
+                rare: '#3b82f6',
+                epic: '#8b5cf6',
+                legendary: '#f59e0b',
+                mythic: '#ef4444'
+            };
+
+            return `
+                <div class="bonus-tag" style="background: ${rarityColors[minerData.rarity]}">${minerData.rarity.toUpperCase()}</div>
+                <h4 class="miner-name font-semibold text-white text-sm">${minerData.name}</h4>
+                <p class="text-xs text-gray-400 mt-1">${minerData.description}</p>
+                <div class="miner-stats">
+                    <span class="hashrate-display">${minerData.hashrate} H/s</span>
+                    <span class="power-display">${minerData.power}W</span>
+                </div>
+                <div class="text-xs text-cyan-400 mt-1">${minerData.bonus}</div>
+                <div class="text-xs text-green-400 mt-1">${minerData.price} tokens</div>
+            `;
+        }
+
+        function installMiner(minerId) {
+            if (!selectedRack || !selectedSlot) return;
+
+            const miner = miningRigs.miners.find(m => m.id === minerId && !m.installed);
+            if (!miner) return;
+
+            // Install the miner
+            miner.installed = true;
+            miningRigs.racks[selectedRack].slots[selectedSlot] = miner;
+
+            // Update the slot display
+            updateRackDisplay();
+            updateMiningStats();
+            closeMinerModal();
+            
+            const minerData = MINERS_DATABASE.find(m => m.id === minerId);
+            showNotification(`${minerData.name} installé avec succès!`);
+            saveGameData();
+        }
+
+        function removeMiner(rack, slot) {
+            const miner = miningRigs.racks[rack].slots[slot];
+            if (!miner) return;
+
+            // Remove from rack
+            delete miningRigs.racks[rack].slots[slot];
+            
+            // Mark as available in inventory
+            const inventoryMiner = miningRigs.miners.find(m => m.id === miner.id);
+            if (inventoryMiner) {
+                inventoryMiner.installed = false;
+            }
+
+            updateRackDisplay();
+            updateMiningStats();
+            closeMinerModal();
+            
+            const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
+            showNotification(`${minerData.name} retiré du rack`);
+            saveGameData();
+        }
+
+        function buyRack(rackId) {
+            const rackPrices = { 1: 500, 2: 1200, 3: 2500, 4: 5000 };
+            const price = rackPrices[rackId];
+
+            if (gameState.mainBalance < price) {
+                showNotification('Solde insuffisant pour acheter ce rack!', 'error');
+                return;
+            }
+
+            // Check if previous rack is owned (progression system)
+            if (rackId > 1 && !miningRigs.racks[rackId - 1].owned) {
+                showNotification('Vous devez acheter les racks précédents d\'abord!', 'error');
+                return;
+            }
+
+            gameState.mainBalance -= price;
+            miningRigs.racks[rackId].owned = true;
+
+            updateRackDisplay();
+            updateDisplay();
+            saveGameData();
+            
+            showNotification(`Rack ${rackId} acheté avec succès!`);
+        }
+
+        function updateRackDisplay() {
+            for (let rackId = 1; rackId <= 4; rackId++) {
+                const rack = miningRigs.racks[rackId];
+                const buyButton = document.getElementById(`buy-rack-${rackId}`);
+                
+                if (rack.owned) {
+                    buyButton.textContent = 'Possédé';
+                    buyButton.disabled = true;
+                    buyButton.classList.add('bg-green-600');
+                    
+                    // Update slots
+                    const rackElement = document.getElementById(`rack-${rackId}`);
+                    const slots = rackElement.querySelectorAll('.mining-slot');
+                    
+                    slots.forEach((slot, index) => {
+                        const slotNumber = index + 1;
+                        const installedMiner = rack.slots[slotNumber];
+                        
+                        if (installedMiner) {
+                            const minerData = MINERS_DATABASE.find(m => m.id === installedMiner.id);
+                            slot.className = 'mining-slot occupied mining-active';
+                            slot.innerHTML = `
+                                <div class="slot-content">
+                                    <div class="text-xs font-semibold text-green-400">${minerData.name}</div>
+                                    <div class="text-xs text-orange-400">${minerData.hashrate} H/s</div>
+                                </div>
+                            `;
+                        } else {
+                            slot.className = 'mining-slot empty';
+                            slot.innerHTML = `
+                                <div class="slot-content">
+                                    <i data-lucide="plus" class="icon text-gray-500"></i>
+                                    <span class="text-xs text-gray-500">Slot Vide</span>
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                    // Enable/disable buy button based on prerequisites
+                    const canBuy = rackId === 1 || miningRigs.racks[rackId - 1].owned;
+                    buyButton.disabled = !canBuy;
+                }
+            }
+            
+            lucide.createIcons();
+        }
+
+        function updateMiningStats() {
+            let totalHashrate = 0;
+            let totalPower = 0;
+            let activeMiners = 0;
+            let miningRevenue = 0;
+
+            // Calculate totals from all installed miners
+            Object.values(miningRigs.racks).forEach(rack => {
+                Object.values(rack.slots).forEach(miner => {
+                    const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
+                    if (minerData) {
+                        totalHashrate += minerData.hashrate;
+                        totalPower += Math.max(0, minerData.power); // Don't count negative (power generating)
+                        activeMiners++;
+                        
+                        // Base revenue: 0.1 tokens per H/s per minute
+                        let revenue = minerData.hashrate * 0.1;
+                        
+                        // Apply bonuses
+                        if (minerData.bonus.includes('+') && minerData.bonus.includes('tokens')) {
+                            const bonusMatch = minerData.bonus.match(/\+(\d+)%\s*tokens/);
+                            if (bonusMatch) {
+                                const bonusPercent = parseInt(bonusMatch[1]) / 100;
+                                revenue *= (1 + bonusPercent);
+                            }
+                        }
+                        
+                        miningRevenue += revenue;
+                    }
+                });
+            });
+
+            miningRigs.totalHashrate = totalHashrate;
+            miningRigs.totalPower = totalPower;
+            miningRigs.miningRevenue = miningRevenue;
+
+            // Update displays
+            document.getElementById('total-hashrate').textContent = totalHashrate.toFixed(2) + ' H/s';
+            document.getElementById('active-miners').textContent = activeMiners;
+            document.getElementById('mining-revenue').textContent = miningRevenue.toFixed(2);
+            
+            const efficiency = totalPower > 0 ? Math.round((totalHashrate / totalPower) * 100) : 100;
+            document.getElementById('efficiency').textContent = efficiency + '%';
+            document.getElementById('power-consumption').textContent = totalPower + 'W';
+
+            // Add mining revenue to auto mining rate
+            gameState.autoMiningRate = (gameState.autoMiningRate || 0) + miningRevenue;
+        }
+
+        function showMinerShop() {
+            // Create a simple miner shop
+            const shopHTML = MINERS_DATABASE.map(miner => `
+                <div class="miner-card rarity-${miner.rarity}" onclick="buyMiner('${miner.id}')">
+                    ${createMinerCardContent(miner)}
+                    <div class="mt-2 text-center">
+                        <button class="cyber-button text-xs">Acheter</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const availableMinersDiv = document.getElementById('available-miners');
+            availableMinersDiv.innerHTML = `
+                <div class="col-span-full mb-4">
+                    <h4 class="text-white font-semibold mb-4">Boutique de Mineurs</h4>
+                </div>
+                ${shopHTML}
+            `;
+
+            document.getElementById('miner-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function buyMiner(minerId) {
+            const minerData = MINERS_DATABASE.find(m => m.id === minerId);
+            if (!minerData) return;
+
+            if (gameState.mainBalance < minerData.price) {
+                showNotification('Solde insuffisant pour acheter ce mineur!', 'error');
+                return;
+            }
+
+            gameState.mainBalance -= minerData.price;
+            
+            // Add to inventory
+            miningRigs.miners.push({
+                id: minerId,
+                installed: false,
+                purchaseDate: new Date().toISOString()
+            });
+
+            updateDisplay();
+            updateMinersInventory();
+            saveGameData();
+            
+            showNotification(`${minerData.name} acheté et ajouté à l'inventaire!`);
+            closeMinerModal();
+        }
+
+        function updateMinersInventory() {
+            const inventoryDiv = document.getElementById('miners-inventory');
+            if (!inventoryDiv) return;
+
+            const uninstalledMiners = miningRigs.miners.filter(miner => !miner.installed);
+            
+            if (uninstalledMiners.length === 0) {
+                inventoryDiv.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-gray-400">Inventaire vide</p>
+                        <p class="text-sm text-gray-500">Achetez des mineurs pour commencer!</p>
+                    </div>
+                `;
+            } else {
+                inventoryDiv.innerHTML = uninstalledMiners.map(miner => {
+                    const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
+                    return createMinerCard(minerData);
+                }).join('');
+            }
+
+            lucide.createIcons();
+        }
+
         // Local Storage Functions
         function getUserId() {
             let userId = localStorage.getItem(USER_ID_KEY);
