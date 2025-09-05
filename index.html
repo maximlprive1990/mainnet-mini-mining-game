@@ -1033,6 +1033,185 @@
         let gameState = null;
         let isOnlineMode = false;
 
+        // Mining system variables
+        let selectedRack = null;
+        let selectedSlot = null;
+
+        // Mining database
+        const MINERS_DATABASE = [
+            // Common Miners (0.5-1.5 H/s)
+            {
+                id: 'basic_cpu',
+                name: 'CPU Basique',
+                rarity: 'common',
+                hashrate: 0.5,
+                power: 65,
+                price: 100,
+                bonus: 'Aucun',
+                description: 'Un processeur de base pour débuter le mining'
+            },
+            {
+                id: 'entry_gpu',
+                name: 'GPU Entrée',
+                rarity: 'common',
+                hashrate: 0.8,
+                power: 120,
+                price: 200,
+                bonus: 'Aucun',
+                description: 'Carte graphique basique pour mining'
+            },
+            {
+                id: 'dual_core',
+                name: 'Dual Core Pro',
+                rarity: 'common',
+                hashrate: 1.2,
+                power: 95,
+                price: 300,
+                bonus: '+5% tokens/min',
+                description: 'Processeur dual core optimisé'
+            },
+
+            // Uncommon Miners (1.5-3.0 H/s)
+            {
+                id: 'quad_core',
+                name: 'Quad Core Elite',
+                rarity: 'uncommon',
+                hashrate: 2.0,
+                power: 140,
+                price: 500,
+                bonus: '+10% tokens/min',
+                description: 'Processeur quad core haute performance'
+            },
+            {
+                id: 'gtx_miner',
+                name: 'GTX Mining Beast',
+                rarity: 'uncommon',
+                hashrate: 2.5,
+                power: 180,
+                price: 700,
+                bonus: '+15% hashrate',
+                description: 'GPU GTX optimisé pour le mining'
+            },
+            {
+                id: 'asic_basic',
+                name: 'ASIC Starter',
+                rarity: 'uncommon',
+                hashrate: 3.0,
+                power: 220,
+                price: 900,
+                bonus: 'Faible consommation',
+                description: 'Premier ASIC abordable'
+            },
+
+            // Rare Miners (3.0-6.0 H/s)
+            {
+                id: 'rtx_3080',
+                name: 'RTX 3080 Mining',
+                rarity: 'rare',
+                hashrate: 4.2,
+                power: 320,
+                price: 1500,
+                bonus: '+25% rendement',
+                description: 'RTX 3080 pour mining intensif'
+            },
+            {
+                id: 'asic_s19',
+                name: 'Antminer S19',
+                rarity: 'rare',
+                hashrate: 5.0,
+                power: 400,
+                price: 2000,
+                bonus: '+30% efficacité',
+                description: 'ASIC professionnel S19'
+            },
+            {
+                id: 'custom_rig',
+                name: 'Rig Custom Pro',
+                rarity: 'rare',
+                hashrate: 5.8,
+                power: 380,
+                price: 2500,
+                bonus: '+20% tokens, -10% power',
+                description: 'Rig assemblé sur mesure'
+            },
+
+            // Epic Miners (6.0-12.0 H/s)
+            {
+                id: 'rtx_4090',
+                name: 'RTX 4090 Ultra',
+                rarity: 'epic',
+                hashrate: 8.5,
+                power: 450,
+                price: 4000,
+                bonus: '+40% rendement global',
+                description: 'Le nec plus ultra des GPU'
+            },
+            {
+                id: 'asic_s21',
+                name: 'Antminer S21 Pro',
+                rarity: 'epic',
+                hashrate: 10.0,
+                power: 520,
+                price: 5000,
+                bonus: '+50% hashrate, +25% tokens',
+                description: 'ASIC dernière génération'
+            },
+            {
+                id: 'quantum_chip',
+                name: 'Puce Quantique',
+                rarity: 'epic',
+                hashrate: 12.0,
+                power: 300,
+                price: 7500,
+                bonus: 'Technologie quantique',
+                description: 'Mining avec processeur quantique'
+            },
+
+            // Legendary Miners (12.0-25.0 H/s)
+            {
+                id: 'ai_processor',
+                name: 'Processeur IA',
+                rarity: 'legendary',
+                hashrate: 18.0,
+                power: 600,
+                price: 12000,
+                bonus: '+75% tokens, Auto-optimisation',
+                description: 'IA dédiée au mining crypto'
+            },
+            {
+                id: 'fusion_reactor',
+                name: 'Réacteur Fusion',
+                rarity: 'legendary',
+                hashrate: 22.0,
+                power: 0, // Self-powered
+                price: 20000,
+                bonus: 'Auto-alimenté, +100% tokens',
+                description: 'Énergie fusion pour mining illimité'
+            },
+
+            // Mythic Miners (25.0+ H/s)
+            {
+                id: 'black_hole',
+                name: 'Extracteur Trou Noir',
+                rarity: 'mythic',
+                hashrate: 50.0,
+                power: -100, // Generates power
+                price: 50000,
+                bonus: 'Génère de l\'énergie, +200% tokens',
+                description: 'Harnesses les trous noirs pour le mining'
+            },
+            {
+                id: 'mainet_core',
+                name: 'Cœur mAInet',
+                rarity: 'mythic',
+                hashrate: 100.0,
+                power: -500, // Massive power generation
+                price: 100000,
+                bonus: 'Source d\'énergie infinie, +500% tokens',
+                description: 'Le cœur même du réseau mAInet'
+            }
+        ];
+
         // Initialize Supabase (with error handling)
         try {
             const { createClient } = supabase;
