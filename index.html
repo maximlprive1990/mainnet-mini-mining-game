@@ -1344,11 +1344,26 @@
                         4: { owned: false, slots: {} }
                     },
                     miners: [],
-                    totalHashrate: 0
+                    totalHashrate: 0,
+                    totalPower: 0,
+                    miningRevenue: 0
+                },
+                referral_system: {
+                    referral_code: generateReferralCode(),
+                    referred_by: null,
+                    referrals: [],
+                    total_referrals: 0,
+                    active_referrals: 0,
+                    referral_earnings: 0,
+                    pending_rewards: []
                 },
                 last_save: new Date().toISOString(),
                 last_energy_update: new Date().toISOString()
             };
+        }
+
+        function generateReferralCode() {
+            return 'MAI' + Math.random().toString(36).substr(2, 6).toUpperCase();
         }
 
         function saveGameData() {
