@@ -221,6 +221,119 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=404, detail="User not found")
     return User(**user)
 
+# Payment API Clients
+class PayeerAPIClient:
+    def __init__(self):
+        self.account = "P1112145219"  # Target Payeer account
+        self.base_url = "https://payeer.com/ajax/api/api.php"
+        
+    async def verify_transaction(self, transaction_id: str, amount: float = None) -> Dict[str, Any]:
+        """
+        Verify a transaction with Payeer API
+        Note: This is a simplified implementation - actual Payeer API requires authentication
+        """
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                # In a real implementation, you would need API credentials and proper authentication
+                # For now, we simulate the verification process
+                await asyncio.sleep(1)  # Simulate API call delay
+                
+                # Mock response - in reality, you'd call the actual Payeer API
+                # with proper authentication and parameters
+                mock_response = {
+                    "success": True,
+                    "transaction_found": True,
+                    "transaction_id": transaction_id,
+                    "amount": amount or 10.0,
+                    "currency": "USD",
+                    "status": "completed",
+                    "to_account": self.account
+                }
+                
+                return mock_response
+                
+        except Exception as e:
+            logger.error(f"Payeer API error: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "transaction_found": False
+            }
+
+class FaucetPayAPIClient:
+    def __init__(self):
+        self.target_email = "maximlprive90@gmail.com"
+        self.base_url = "https://faucetpay.io/api/v1"
+        
+    async def verify_transaction(self, transaction_id: str, amount: float = None) -> Dict[str, Any]:
+        """
+        Verify a transaction with FaucetPay API
+        Note: This is a simplified implementation - actual FaucetPay API requires API key
+        """
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                # In a real implementation, you would need API key and proper authentication
+                # For now, we simulate the verification process
+                await asyncio.sleep(1)  # Simulate API call delay
+                
+                # Mock response - in reality, you'd call the actual FaucetPay API
+                # with proper authentication and parameters
+                mock_response = {
+                    "success": True,
+                    "transaction_found": True,
+                    "transaction_id": transaction_id,
+                    "amount": amount or 5.0,
+                    "currency": "USD",
+                    "status": "confirmed",
+                    "to_email": self.target_email
+                }
+                
+                return mock_response
+                
+        except Exception as e:
+            logger.error(f"FaucetPay API error: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "transaction_found": False
+            }
+
+class PaymentVerificationService:
+    def __init__(self):
+        self.payeer_client = PayeerAPIClient()
+        self.faucetpay_client = FaucetPayAPIClient()
+        
+    async def verify_transaction(self, transaction_id: str, payment_method: PaymentMethod, amount: float = None) -> Dict[str, Any]:
+        """Verify transaction using the appropriate payment method"""
+        try:
+            if payment_method == PaymentMethod.PAYEER:
+                result = await self.payeer_client.verify_transaction(transaction_id, amount)
+            elif payment_method == PaymentMethod.FAUCETPAY:
+                result = await self.faucetpay_client.verify_transaction(transaction_id, amount)
+            else:
+                return {
+                    "success": False,
+                    "error": f"Unsupported payment method: {payment_method}",
+                    "transaction_found": False
+                }
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Payment verification error: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "transaction_found": False
+            }
+    
+    def calculate_bonus(self, amount: float) -> float:
+        """Calculate 17% bonus for verified deposits"""
+        return round(amount * 0.17, 2)
+
+# Initialize payment verification service
+payment_service = PaymentVerificationService()
+
 async def get_or_create_user_game(user_id: str) -> UserGame:
     user_game = await db.user_games.find_one({"user_id": user_id})
     if not user_game:
