@@ -1224,13 +1224,14 @@
             <!-- Deposits Tab -->
             <div id="tab-deposits" class="tab-content">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold text-white">Dépôts & Bonus</h2>
-                    <button class="cyber-button" onclick="showDepositModal()">
-                        <i data-lucide="plus" class="icon"></i>
-                        <span style="margin-left: 8px;">Nouveau Dépôt</span>
+                    <h2 class="text-xl font-bold text-white">Dépôts & Vérification IDTX</h2>
+                    <button class="cyber-button" onclick="showAdminPanel()">
+                        <i data-lucide="settings" class="icon"></i>
+                        <span style="margin-left: 8px;">Panneau Admin</span>
                     </button>
                 </div>
 
+                <!-- Payment Information -->
                 <div class="cyber-card">
                     <div class="p-6">
                         <h3 class="font-semibold text-white mb-4">Informations de Dépôt</h3>
@@ -1245,18 +1246,88 @@
                             </div>
                             <div class="text-center p-4" style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px;">
                                 <p class="text-cyber-green font-bold">🎉 BONUS DE 17% SUR TOUS LES DÉPÔTS ! 🎉</p>
-                                <p class="text-sm text-gray-400">Votre dépôt sera automatiquement majoré de 17%</p>
+                                <p class="text-sm text-gray-400">Votre dépôt sera automatiquement majoré de 17% après vérification</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="cyber-card mt-8">
+                <!-- Transaction Verification Form -->
+                <div class="cyber-card mt-6">
                     <div class="p-6">
-                        <h3 class="font-semibold text-white mb-4">Historique des Dépôts</h3>
-                        <div class="text-center py-8">
-                            <p class="text-gray-400">Aucun dépôt pour le moment</p>
-                            <p class="text-sm text-gray-400">Effectuez votre premier dépôt pour commencer !</p>
+                        <h3 class="font-semibold text-white mb-4">
+                            <i data-lucide="search" class="icon text-cyan-400"></i>
+                            <span style="margin-left: 8px;">Vérification de Transaction (IDTX)</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">ID de Transaction (IDTX)</label>
+                                <input 
+                                    type="text" 
+                                    id="transaction-id-input" 
+                                    placeholder="Entrez votre ID de transaction..." 
+                                    class="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:border-cyan-400 focus:outline-none"
+                                >
+                                <p class="text-xs text-gray-500 mt-1">Tous les formats d'ID de transaction sont acceptés</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Méthode de Paiement</label>
+                                <select id="payment-method-select" class="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:border-cyan-400 focus:outline-none">
+                                    <option value="payeer">Payeer</option>
+                                    <option value="faucetpay">FaucetPay</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Montant (optionnel)</label>
+                                <input 
+                                    type="number" 
+                                    id="amount-input" 
+                                    placeholder="Montant de la transaction..." 
+                                    step="0.01"
+                                    class="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:border-cyan-400 focus:outline-none"
+                                >
+                            </div>
+                            
+                            <button onclick="verifyTransaction()" class="cyber-button w-full" id="verify-btn">
+                                <i data-lucide="check-circle" class="icon"></i>
+                                <span style="margin-left: 8px;">Vérifier Transaction</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Verification Result -->
+                        <div id="verification-result" class="mt-4 hidden">
+                            <div class="p-4 rounded-lg border">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i id="result-icon" class="icon"></i>
+                                    <span id="result-status" class="font-semibold"></span>
+                                </div>
+                                <p id="result-message" class="text-sm text-gray-300 mb-2"></p>
+                                <div id="result-details" class="text-xs text-gray-400"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verification History -->
+                <div class="cyber-card mt-6">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold text-white">
+                                <i data-lucide="history" class="icon text-purple-400"></i>
+                                <span style="margin-left: 8px;">Historique des Vérifications</span>
+                            </h3>
+                            <button onclick="loadVerificationHistory()" class="cyber-button text-sm">
+                                <i data-lucide="refresh-cw" class="icon"></i>
+                                <span style="margin-left: 8px;">Actualiser</span>
+                            </button>
+                        </div>
+                        <div id="verification-history">
+                            <div class="text-center py-8" id="no-verifications">
+                                <p class="text-gray-400">Aucune vérification pour le moment</p>
+                                <p class="text-sm text-gray-400">Vérifiez votre première transaction pour commencer !</p>
+                            </div>
                         </div>
                     </div>
                 </div>
