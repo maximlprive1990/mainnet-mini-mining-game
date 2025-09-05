@@ -89,35 +89,76 @@ class Payeer:
     
     async def verify_transaction(self, transaction_id: str, amount: float = None) -> Dict[str, Any]:
         """
-        Verify a transaction with Payeer API
-        Note: This is a simplified implementation - actual Payeer API requires authentication
+        Verify a transaction with Payeer API using real API integration
         """
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
-                # In a real implementation, you would need API credentials and proper authentication
-                # For now, we simulate the verification process
-                await asyncio.sleep(1)  # Simulate API call delay
+                # Real Payeer API integration
+                api_params = {
+                    'account': self.account,
+                    'apiId': os.getenv('PAYEER_API_ID', ''),
+                    'apiPass': os.getenv('PAYEER_API_SECRET', ''),
+                    'action': 'historyInfo',
+                    'historyId': transaction_id
+                }
                 
-                # Simple validation: reject obviously invalid transaction IDs
-                if len(transaction_id) < 8 or transaction_id.upper().startswith("INVALID"):
-                    mock_response = {
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'Payeer-Python-Client/1.0'
+                }
+                
+                response = await client.post(
+                    'https://payeer.com/ajax/api/api.php',
+                    data=api_params,
+                    headers=headers
+                )
+                
+                if response.status_code == 200:
+                    try:
+                        data = response.json()
+                        
+                        # Check authentication and response validity
+                        if data.get('auth_error', 0) == 0 and 'info' in data and data['info']:
+                            info = data['info']
+                            
+                            # Check if transaction is to our account
+                            if info.get('to') == self.account:
+                                return {
+                                    "success": True,
+                                    "transaction_found": True,
+                                    "transaction_id": transaction_id,
+                                    "amount": float(info.get('creditedSum', 0)),
+                                    "currency": info.get('creditedCur', 'USD'),
+                                    "status": "completed" if info.get('status') == 'success' else "pending",
+                                    "to_account": self.account,
+                                    "from_account": info.get('from', ''),
+                                    "date": info.get('date', ''),
+                                    "comment": info.get('comment', '')
+                                }
+                            else:
+                                return {
+                                    "success": False,
+                                    "transaction_found": False,
+                                    "error": "Transaction not sent to our account"
+                                }
+                        else:
+                            return {
+                                "success": False,
+                                "transaction_found": False,
+                                "error": data.get('errors', ['Transaction not found'])[0] if data.get('errors') else "Transaction not found"
+                            }
+                    except json.JSONDecodeError:
+                        return {
+                            "success": False,
+                            "transaction_found": False,
+                            "error": "Invalid response from Payeer API"
+                        }
+                else:
+                    return {
                         "success": False,
                         "transaction_found": False,
-                        "transaction_id": transaction_id,
-                        "error": "Transaction not found or invalid"
+                        "error": f"HTTP error {response.status_code}"
                     }
-                else:
-                    mock_response = {
-                        "success": True,
-                        "transaction_found": True,
-                        "transaction_id": transaction_id,
-                        "amount": amount or 10.0,
-                        "currency": "USD",
-                        "status": "completed",
-                        "to_account": self.account
-                    }
-                
-                return mock_response
                 
         except Exception as e:
             logger.error(f"Payeer API error: {str(e)}")
