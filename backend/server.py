@@ -287,15 +287,25 @@ class FaucetPayAPIClient:
                 
                 # Mock response - in reality, you'd call the actual FaucetPay API
                 # with proper authentication and parameters
-                mock_response = {
-                    "success": True,
-                    "transaction_found": True,
-                    "transaction_id": transaction_id,
-                    "amount": amount or 5.0,
-                    "currency": "USD",
-                    "status": "confirmed",
-                    "to_email": self.target_email
-                }
+                
+                # Simple validation: reject obviously invalid transaction IDs
+                if len(transaction_id) < 8 or transaction_id.upper().startswith("INVALID"):
+                    mock_response = {
+                        "success": False,
+                        "transaction_found": False,
+                        "transaction_id": transaction_id,
+                        "error": "Transaction not found or invalid"
+                    }
+                else:
+                    mock_response = {
+                        "success": True,
+                        "transaction_found": True,
+                        "transaction_id": transaction_id,
+                        "amount": amount or 5.0,
+                        "currency": "USD",
+                        "status": "confirmed",
+                        "to_email": self.target_email
+                    }
                 
                 return mock_response
                 
