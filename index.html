@@ -27,20 +27,18 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         :root {
             --cyber-green: #00ff88;
-            --cyber-green-dark: #00cc66;
-            --cyber-blue: #00ccff;
-            --cyber-purple: #8855ff;
+            --cyber-blue: #0099ff;
+            --cyber-purple: #9933ff;
             --cyber-yellow: #ffdd00;
-            --cyber-orange: #ff8800;
-            --cyber-bg: #0a0a0a;
-            --cyber-bg-secondary: #111111;
-            --cyber-bg-tertiary: #1a1a1a;
-            --cyber-border: #333333;
-            --cyber-text: #ffffff;
-            --cyber-text-secondary: #aaaaaa;
+            --cyber-border: rgba(0, 255, 136, 0.3);
+            --dark-bg: #0a0a0a;
+            --card-bg: rgba(26, 26, 26, 0.9);
+            --glass-bg: rgba(255, 255, 255, 0.05);
         }
 
         * {
@@ -51,630 +49,341 @@
 
         body {
             font-family: 'Roboto Mono', monospace;
-            background: var(--cyber-bg);
-            color: var(--cyber-text);
-            line-height: 1.6;
-            overflow-x: hidden;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #16213e 100%);
+            color: white;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(0, 204, 255, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(136, 85, 255, 0.03) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        /* Header Styles */
-        .cyber-header {
-            background: rgba(26, 26, 26, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--cyber-border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding: 1rem 0;
-        }
-
-        .cyber-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-family: 'Orbitron', monospace;
-            font-weight: 800;
-            letter-spacing: 2px;
-        }
-
-        .cyber-stats {
-            display: flex;
-            gap: 24px;
-            padding: 8px 16px;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
-        }
-
-        /* Hero Section */
-        .cyber-hero {
-            background: 
-                linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(26, 26, 26, 0.9) 100%),
-                url('https://images.unsplash.com/photo-1601042879364-f3947d3f9c16?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxjeWJlcnB1bmt8ZW58MHx8fHwxNzU2OTI3NTAwfDA&ixlib=rb-4.1.0&q=85');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            position: relative;
-            overflow: hidden;
-            padding: 4rem 0;
-        }
-
-        .cyber-hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                linear-gradient(45deg, transparent 49%, rgba(0, 255, 136, 0.1) 50%, transparent 51%),
-                linear-gradient(-45deg, transparent 49%, rgba(0, 204, 255, 0.1) 50%, transparent 51%);
-            background-size: 20px 20px;
-            animation: cyber-grid 20s linear infinite;
-        }
-
-        @keyframes cyber-grid {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(20px, 20px); }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
         .cyber-title {
             font-family: 'Orbitron', monospace;
-            font-size: 4rem;
+            font-size: 3rem;
             font-weight: 900;
             text-align: center;
-            background: linear-gradient(135deg, var(--cyber-green) 0%, var(--cyber-blue) 50%, var(--cyber-purple) 100%);
-            background-clip: text;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--cyber-green), var(--cyber-blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
             text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
-            letter-spacing: 3px;
-            margin-bottom: 24px;
-            animation: cyber-glow 3s ease-in-out infinite alternate;
+            animation: glow 2s ease-in-out infinite alternate;
         }
 
-        @keyframes cyber-glow {
-            0% { filter: brightness(1) drop-shadow(0 0 20px rgba(0, 255, 136, 0.3)); }
-            100% { filter: brightness(1.2) drop-shadow(0 0 40px rgba(0, 255, 136, 0.6)); }
+        @keyframes glow {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.2); }
         }
 
         .cyber-subtitle {
-            font-size: 1.5rem;
-            color: var(--cyber-text-secondary);
             text-align: center;
-            margin-bottom: 48px;
-            font-weight: 300;
+            font-size: 1.2rem;
+            color: var(--cyber-blue);
+            margin-bottom: 30px;
+            font-weight: 500;
         }
 
-        .cyber-countdown {
-            display: flex;
-            justify-content: center;
-            gap: 32px;
-            margin-top: 48px;
+        .countdown-container {
+            background: var(--card-bg);
+            border: 2px solid var(--cyber-border);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .countdown-timer {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
         }
 
         .countdown-item {
-            text-align: center;
-            padding: 24px;
-            background: rgba(0, 255, 136, 0.1);
-            border: 2px solid rgba(0, 255, 136, 0.3);
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .countdown-item:hover {
-            transform: translateY(-5px);
-            border-color: var(--cyber-green);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+            background: var(--glass-bg);
+            border: 1px solid var(--cyber-green);
+            border-radius: 10px;
+            padding: 15px 10px;
         }
 
         .countdown-number {
-            font-family: 'Orbitron', monospace;
-            font-size: 3rem;
-            font-weight: 800;
+            font-size: 2.5rem;
+            font-weight: bold;
             color: var(--cyber-green);
-            line-height: 1;
+            font-family: 'Orbitron', monospace;
         }
 
         .countdown-label {
-            font-size: 0.875rem;
-            color: var(--cyber-text-secondary);
-            font-weight: 500;
-            letter-spacing: 1px;
-            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-top: 5px;
         }
 
-        /* Cards */
-        .cyber-card {
-            background: rgba(26, 26, 26, 0.8);
-            border: 1px solid var(--cyber-border);
-            border-radius: 12px;
+        .cyber-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 2px solid var(--cyber-border);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
             backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 24px;
         }
 
-        .cyber-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--cyber-green), transparent);
-            transition: all 0.5s ease;
-        }
-
-        .cyber-card:hover::before {
-            left: 100%;
-        }
-
-        .cyber-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(0, 255, 136, 0.5);
-            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.2);
-        }
-
-        /* Click Game Styles */
-        .click-game-card {
-            background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(40, 40, 40, 0.8) 100%);
-            border: 2px solid rgba(0, 255, 136, 0.3);
-        }
-
-        .click-area {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 300px;
-            position: relative;
-        }
-
-        .click-button {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            border: none;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0, 255, 136, 0.8) 0%, rgba(0, 255, 136, 0.4) 50%, rgba(0, 255, 136, 0.1) 100%);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            overflow: hidden;
-            box-shadow: 
-                0 0 40px rgba(0, 255, 136, 0.5),
-                inset 0 0 20px rgba(0, 255, 136, 0.2);
-        }
-
-        .click-button:hover:not(:disabled) {
-            transform: scale(1.05);
-            box-shadow: 
-                0 0 60px rgba(0, 255, 136, 0.7),
-                inset 0 0 30px rgba(0, 255, 136, 0.3);
-        }
-
-        .click-button:active:not(:disabled) {
-            transform: scale(0.95);
-        }
-
-        .click-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: radial-gradient(circle, rgba(100, 100, 100, 0.3) 0%, rgba(50, 50, 50, 0.2) 100%);
-            box-shadow: 0 0 20px rgba(100, 100, 100, 0.2);
-        }
-
-        .click-button-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: white;
-            font-family: 'Orbitron', monospace;
-        }
-
-        .click-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-            margin-top: 8px;
-            letter-spacing: 2px;
-        }
-
-        .click-power {
-            font-size: 0.8rem;
-            font-weight: 500;
-            opacity: 0.8;
-            margin-top: 4px;
-        }
-
-        .click-animation {
-            position: absolute;
-            color: var(--cyber-green);
-            font-family: 'Orbitron', monospace;
+        .stat-value {
+            font-size: 2rem;
             font-weight: bold;
-            font-size: 1.2rem;
-            pointer-events: none;
-            animation: float-up 1s ease-out forwards;
-            z-index: 10;
-        }
-
-        @keyframes float-up {
-            0% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-        }
-
-        .energy-bar {
-            background-color: rgba(40, 40, 40, 0.8);
-            border-radius: 4px;
-            height: 12px;
-            overflow: hidden;
-            margin: 8px 0;
-        }
-
-        .energy-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--cyber-yellow) 0%, var(--cyber-green) 100%);
-            transition: width 0.3s ease;
-        }
-
-        /* Upgrades */
-        .upgrade-card {
-            background: rgba(40, 40, 40, 0.5);
-            border: 1px solid var(--cyber-border);
-            border-radius: 8px;
-            padding: 12px;
-            transition: all 0.3s ease;
-            margin-bottom: 12px;
-        }
-
-        .upgrade-card:hover {
-            border-color: rgba(0, 255, 136, 0.5);
-            background: rgba(40, 40, 40, 0.7);
-        }
-
-        /* Buttons */
-        .cyber-button {
-            background: linear-gradient(135deg, var(--cyber-green) 0%, var(--cyber-green-dark) 100%);
-            color: var(--cyber-bg);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-family: 'Roboto Mono', monospace;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cyber-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: all 0.5s ease;
-        }
-
-        .cyber-button:hover::before {
-            left: 100%;
-        }
-
-        .cyber-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
-            background: linear-gradient(135deg, var(--cyber-green-dark) 0%, var(--cyber-green) 100%);
-        }
-
-        .cyber-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Badge */
-        .badge {
-            background: rgba(0, 255, 136, 0.2);
             color: var(--cyber-green);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            font-family: 'Roboto Mono', monospace;
-            font-weight: 500;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            display: inline-block;
+            font-family: 'Orbitron', monospace;
         }
 
-        .badge-success {
-            background: rgba(0, 255, 136, 0.2);
-            color: var(--cyber-green);
-            border: 1px solid var(--cyber-green);
+        .stat-label {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-top: 5px;
         }
 
-        /* Tabs */
-        .tabs {
-            margin-top: 32px;
+        .tabs-container {
+            background: var(--card-bg);
+            border: 2px solid var(--cyber-border);
+            border-radius: 15px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
         }
 
         .tabs-list {
-            background: rgba(26, 26, 26, 0.8);
-            border: 1px solid var(--cyber-border);
-            border-radius: 8px;
-            padding: 4px;
             display: flex;
-            gap: 4px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
+            border-bottom: 2px solid var(--cyber-border);
+            overflow-x: auto;
         }
 
         .tab-trigger {
+            padding: 15px 25px;
             background: transparent;
             border: none;
-            color: var(--cyber-text-secondary);
-            padding: 12px 24px;
-            border-radius: 6px;
+            color: #ccc;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-family: 'Roboto Mono', monospace;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab-trigger:hover {
+            color: var(--cyber-green);
+            background: rgba(0, 255, 136, 0.1);
         }
 
         .tab-trigger.active {
-            background: var(--cyber-green);
-            color: var(--cyber-bg);
-            font-weight: 600;
+            color: var(--cyber-green);
+            border-bottom-color: var(--cyber-green);
+            background: rgba(0, 255, 136, 0.1);
         }
 
         .tab-content {
             display: none;
+            padding: 30px;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        /* Products Grid */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-        }
-
-        .product-card {
-            overflow: hidden;
-        }
-
-        .product-image {
-            position: relative;
-            height: 200px;
-            overflow: hidden;
-        }
-
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .product-card:hover .product-image img {
-            transform: scale(1.1);
-        }
-
-        .product-overlay {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-        }
-
-        /* Layout */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .grid {
-            display: grid;
-            gap: 24px;
-        }
-
-        .grid-cols-1 { grid-template-columns: 1fr; }
-        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
-
-        .flex {
-            display: flex;
-        }
-
-        .items-center { align-items: center; }
-        .justify-between { justify-content: space-between; }
-        .justify-center { justify-content: center; }
-        .text-center { text-align: center; }
-
-        .space-x-2 > * + * { margin-left: 8px; }
-        .space-x-4 > * + * { margin-left: 16px; }
-        .space-y-4 > * + * { margin-top: 16px; }
-
-        .mb-4 { margin-bottom: 16px; }
-        .mb-8 { margin-bottom: 32px; }
-        .mt-4 { margin-top: 16px; }
-        .p-6 { padding: 24px; }
-
-        .text-xl { font-size: 1.25rem; }
-        .text-2xl { font-size: 1.5rem; }
-        .text-sm { font-size: 0.875rem; }
-        .text-xs { font-size: 0.75rem; }
-
-        .font-bold { font-weight: 700; }
-        .font-semibold { font-weight: 600; }
-        .font-mono { font-family: 'Roboto Mono', monospace; }
-
-        .text-white { color: var(--cyber-text); }
-        .text-gray-400 { color: var(--cyber-text-secondary); }
-        .text-cyber-green { color: var(--cyber-green); }
-        .text-yellow-400 { color: var(--cyber-yellow); }
-        .text-blue-400 { color: var(--cyber-blue); }
-        .text-purple-400 { color: var(--cyber-purple); }
-        .text-orange-400 { color: var(--cyber-orange); }
-
-        .hidden {
-            display: none;
-        }
-
-        .icon {
-            width: 20px;
-            height: 20px;
-            display: inline-block;
-            vertical-align: middle;
-        }
-
-        .icon-lg {
-            width: 32px;
-            height: 32px;
-        }
-
-        .icon-xl {
-            width: 64px;
-            height: 64px;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .cyber-title {
-                font-size: 2.5rem;
-            }
-            
-            .cyber-countdown {
-                gap: 16px;
-            }
-            
-            .countdown-item {
-                padding: 16px;
-            }
-            
-            .countdown-number {
-                font-size: 2rem;
-            }
-            
-            .cyber-stats {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .click-button {
-                width: 150px;
-                height: 150px;
-            }
-            
-            .click-text {
-                font-size: 1rem;
-            }
-            
-            .grid-cols-2, .grid-cols-3, .grid-cols-4 {
-                grid-template-columns: 1fr;
-            }
-
-            .tabs-list {
-                flex-direction: column;
-            }
-
-            .tab-trigger {
-                text-align: center;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .cyber-title {
-                font-size: 2rem;
-            }
-            
-            .cyber-subtitle {
-                font-size: 1.125rem;
-            }
-            
-            .cyber-countdown {
-                flex-wrap: wrap;
-                gap: 12px;
-            }
-            
-            .countdown-item {
-                flex: 1;
-                min-width: 120px;
-                padding: 12px;
-            }
-            
-            .click-area {
-                min-height: 200px;
-            }
-            
-            .click-button {
-                width: 120px;
-                height: 120px;
-            }
-            
-            .click-text {
-                font-size: 0.8rem;
-            }
-        }
-
-        /* Loading */
-        .loading {
-            display: flex;
-            flex-direction: column;
+        .cyber-button {
+            background: linear-gradient(45deg, var(--cyber-green), var(--cyber-blue));
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            min-height: 200px;
-            gap: 16px;
-            font-family: 'Orbitron', monospace;
-            font-size: 1.125rem;
-            color: var(--cyber-green);
+            gap: 8px;
         }
 
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .cyber-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .cyber-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .cyber-card {
-            animation: fadeIn 0.6s ease-out;
+            background: var(--card-bg);
+            border: 1px solid var(--cyber-border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
         }
 
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .click-game-container {
+            text-align: center;
+            padding: 20px;
         }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
+
+        .click-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--cyber-green), var(--cyber-blue));
+            border: 4px solid var(--cyber-yellow);
+            color: black;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .click-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.6);
+        }
+
+        .click-button:active {
+            transform: scale(0.95);
+        }
+
+        .click-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.4rem;
+            z-index: 2;
+        }
+
+        .energy-bar-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--cyber-border);
+            border-radius: 25px;
+            padding: 5px;
+        }
+
+        .energy-bar {
+            height: 20px;
+            background: linear-gradient(90deg, var(--cyber-yellow), var(--cyber-green));
+            border-radius: 20px;
+            transition: width 0.3s ease;
+        }
+
+        .icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 2px solid var(--cyber-green);
+            border-radius: 8px;
+            padding: 15px;
+            color: white;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        .notification.success {
+            border-color: var(--cyber-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: var(--card-bg);
+            border: 2px solid var(--cyber-border);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-input {
+            padding: 12px 15px;
+            border: 2px solid var(--cyber-border);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--cyber-green);
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--cyber-blue);
+            cursor: pointer;
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--cyber-green);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
         }
 
         /* Mining Rigs Styles */
@@ -701,15 +410,6 @@
             background: rgba(0, 255, 136, 0.1);
         }
 
-        .mining-slot.empty {
-            border-style: dashed;
-        }
-
-        .slot-content {
-            text-align: center;
-            padding: 8px;
-        }
-
         .miner-card {
             background: rgba(26, 26, 26, 0.8);
             border: 1px solid var(--cyber-border);
@@ -718,7 +418,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
         }
 
         .miner-card:hover {
@@ -727,225 +426,129 @@
             transform: translateY(-2px);
         }
 
-        .miner-card.rarity-common {
-            border-left: 4px solid #6b7280;
-        }
-
-        .miner-card.rarity-uncommon {
-            border-left: 4px solid #10b981;
-        }
-
-        .miner-card.rarity-rare {
-            border-left: 4px solid #3b82f6;
-        }
-
-        .miner-card.rarity-epic {
-            border-left: 4px solid #8b5cf6;
-        }
-
-        .miner-card.rarity-legendary {
-            border-left: 4px solid #f59e0b;
-        }
-
-        .miner-card.rarity-mythic {
+        .rarity-common { border-left: 4px solid #6b7280; }
+        .rarity-uncommon { border-left: 4px solid #10b981; }
+        .rarity-rare { border-left: 4px solid #3b82f6; }
+        .rarity-epic { border-left: 4px solid #8b5cf6; }
+        .rarity-legendary { border-left: 4px solid #f59e0b; }
+        .rarity-mythic { 
             border-left: 4px solid #ef4444;
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
         }
 
-        .miner-stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            font-size: 0.75rem;
-        }
-
-        .hashrate-display {
-            color: var(--cyber-green);
-            font-weight: bold;
-        }
-
-        .power-display {
-            color: var(--cyber-yellow);
-        }
-
-        .bonus-tag {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: var(--cyber-purple);
-            color: white;
-            font-size: 0.6rem;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-
-        .installed-miner {
-            background: rgba(0, 255, 136, 0.1);
-            border: 2px solid var(--cyber-green);
-        }
-
-        .installed-miner .miner-name {
-            color: var(--cyber-green);
-        }
-
-        @keyframes mining-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        .mining-active {
-            animation: mining-pulse 2s infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Text Selection */
-        ::selection {
-            background: rgba(0, 255, 136, 0.3);
-            color: var(--cyber-text);
-        }
-
-        ::-moz-selection {
-            background: rgba(0, 255, 136, 0.3);
-            color: var(--cyber-text);
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--cyber-bg-secondary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 255, 136, 0.3);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 255, 136, 0.5);
+        @media (max-width: 768px) {
+            .cyber-title {
+                font-size: 2rem;
+            }
+            .cyber-subtitle {
+                font-size: 1rem;
+            }
+            .countdown-timer {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .cyber-stats {
+                flex-direction: column;
+            }
+            .click-button {
+                width: 150px;
+                height: 150px;
+            }
+            .tabs-list {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="cyber-header">
-        <div class="container">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="cyber-logo">
-                        <i data-lucide="zap" class="icon-lg text-cyber-green"></i>
-                        <span class="text-2xl font-bold text-white">mAInet</span>
-                    </div>
-                    <span class="badge">Airdrop 2026</span>
-                </div>
-                
-                <div class="cyber-stats">
-                    <div class="flex items-center space-x-2">
-                        <i data-lucide="coins" class="icon text-cyber-green"></i>
-                        <span class="text-cyber-green font-mono" id="main-balance">100.00</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <i data-lucide="gift" class="icon text-yellow-400"></i>
-                        <span class="text-yellow-400 font-mono" id="bonus-balance">0.00</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <i data-lucide="mouse-pointer" class="icon text-purple-400"></i>
-                        <span class="text-purple-400 font-mono" id="game-balance">0.000</span>
-                    </div>
-                </div>
+    <!-- Authentication Container (shown when not logged in) -->
+    <div id="auth-container" class="auth-container hidden">
+        <h2 class="cyber-title" style="font-size: 2rem; margin-bottom: 20px;">mAInet Access</h2>
+        
+        <!-- Login Form -->
+        <div id="login-form">
+            <h3 style="color: var(--cyber-green); margin-bottom: 20px;">Se Connecter</h3>
+            <form class="auth-form" onsubmit="handleLogin(event)">
+                <input type="email" id="login-email" class="auth-input" placeholder="Email" required>
+                <input type="password" id="login-password" class="auth-input" placeholder="Mot de passe" required>
+                <button type="submit" class="cyber-button" id="login-btn">
+                    <span>Se Connecter</span>
+                </button>
+            </form>
+            <div class="auth-toggle" onclick="showRegister()">
+                Pas de compte ? S'inscrire
             </div>
         </div>
-    </header>
 
-    <!-- Hero Section -->
-    <section class="cyber-hero">
-        <div class="container">
-            <div class="text-center">
-                <h1 class="cyber-title">
-                    AIRDROP mAInet 2026
-                </h1>
-                <p class="cyber-subtitle">
-                    Rejoignez la révolution du mining et gagnez des tokens
-                </p>
-                <div class="cyber-countdown">
-                    <div class="countdown-item">
-                        <div class="countdown-number" id="days">126</div>
-                        <div class="countdown-label">JOURS</div>
-                    </div>
-                    <div class="countdown-item">
-                        <div class="countdown-number" id="hours">15</div>
-                        <div class="countdown-label">HEURES</div>
-                    </div>
-                    <div class="countdown-item">
-                        <div class="countdown-number" id="minutes">42</div>
-                        <div class="countdown-label">MINUTES</div>
-                    </div>
-                </div>
+        <!-- Register Form -->
+        <div id="register-form" class="hidden">
+            <h3 style="color: var(--cyber-green); margin-bottom: 20px;">S'Inscrire</h3>
+            <form class="auth-form" onsubmit="handleRegister(event)">
+                <input type="text" id="register-username" class="auth-input" placeholder="Nom d'utilisateur" required>
+                <input type="text" id="register-fullname" class="auth-input" placeholder="Nom complet">
+                <input type="email" id="register-email" class="auth-input" placeholder="Email" required>
+                <input type="password" id="register-password" class="auth-input" placeholder="Mot de passe" required>
+                <button type="submit" class="cyber-button" id="register-btn">
+                    <span>S'Inscrire</span>
+                </button>
+            </form>
+            <div class="auth-toggle" onclick="showLogin()">
+                Déjà un compte ? Se connecter
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 grid-cols-2 grid-cols-4 mb-8" style="margin-top: 32px;">
-            <div class="cyber-card">
-                <div class="p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-400">Solde Principal</p>
-                            <p class="text-2xl font-bold text-cyber-green" id="stats-balance">100.00</p>
-                        </div>
-                        <i data-lucide="wallet" class="icon-xl text-cyber-green"></i>
-                    </div>
+    <!-- Main App Container (shown when logged in) -->
+    <div id="app-container" class="container hidden">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="cyber-title">mAInet</h1>
+            <p class="cyber-subtitle">Airdrop 2026 • Mining & Trading Platform</p>
+        </div>
+
+        <!-- Countdown Timer -->
+        <div class="countdown-container">
+            <h2 style="color: var(--cyber-green); margin-bottom: 15px;">
+                <i data-lucide="clock" class="icon"></i>
+                <span style="margin-left: 8px;">Airdrop dans:</span>
+            </h2>
+            <div class="countdown-timer">
+                <div class="countdown-item">
+                    <div class="countdown-number" id="days">000</div>
+                    <div class="countdown-label">Jours</div>
                 </div>
-            </div>
-
-            <div class="cyber-card">
-                <div class="p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-400">Bonus (+17%)</p>
-                            <p class="text-2xl font-bold text-yellow-400" id="stats-bonus">0.00</p>
-                        </div>
-                        <i data-lucide="gift" class="icon-xl text-yellow-400"></i>
-                    </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="hours">00</div>
+                    <div class="countdown-label">Heures</div>
                 </div>
-            </div>
-
-            <div class="cyber-card">
-                <div class="p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-400">Total Gagné</p>
-                            <p class="text-2xl font-bold text-blue-400" id="stats-earned">100.00</p>
-                        </div>
-                        <i data-lucide="trending-up" class="icon-xl text-blue-400"></i>
-                    </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="minutes">00</div>
+                    <div class="countdown-label">Minutes</div>
                 </div>
-            </div>
-
-            <div class="cyber-card">
-                <div class="p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-400">Jeu - Solde</p>
-                            <p class="text-2xl font-bold text-purple-400" id="stats-game">0.000</p>
-                        </div>
-                        <i data-lucide="mouse-pointer" class="icon-xl text-purple-400"></i>
-                    </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="seconds">00</div>
+                    <div class="countdown-label">Secondes</div>
                 </div>
             </div>
         </div>
 
-        <!-- Tabs -->
-        <div class="tabs">
+        <!-- User Stats -->
+        <div class="cyber-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="main-balance">0.00</div>
+                <div class="stat-label">Solde Principal</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="bonus-balance">0.00</div>
+                <div class="stat-label">Solde Bonus</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-hashrate">0.00 H/s</div>
+                <div class="stat-label">Puissance Mining</div>
+            </div>
+        </div>
+
+        <!-- Tabs Container -->
+        <div class="tabs-container">
             <div class="tabs-list">
                 <button class="tab-trigger active" onclick="showTab('game')">Jeu de Clic</button>
                 <button class="tab-trigger" onclick="showTab('tasks')">Tâches</button>
@@ -957,1939 +560,311 @@
 
             <!-- Game Tab -->
             <div id="tab-game" class="tab-content active">
-                <div class="grid grid-cols-1 grid-cols-3">
-                    <!-- Game Area -->
-                    <div style="grid-column: span 2;">
-                        <div class="cyber-card click-game-card">
-                            <div class="p-6">
-                                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-                                    <i data-lucide="mouse-pointer" class="icon text-cyber-green"></i>
-                                    <span style="margin-left: 8px;">Jeu de Clic - Mining</span>
-                                </h3>
-                                
-                                <div class="grid grid-cols-2 mb-6">
-                                    <div>
-                                        <p class="text-sm text-gray-400">Solde du Jeu</p>
-                                        <div class="flex items-center space-x-2">
-                                            <i data-lucide="coins" class="icon text-cyber-green"></i>
-                                            <span class="text-xl font-bold text-cyber-green" id="game-balance-display">0.000</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm text-gray-400">Total Clics</p>
-                                        <div class="flex items-center space-x-2">
-                                            <i data-lucide="target" class="icon text-blue-400"></i>
-                                            <span class="text-xl font-bold text-blue-400" id="total-clicks">0</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Energy Bar -->
-                                <div class="mb-6">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <div class="flex items-center space-x-2">
-                                            <i data-lucide="bolt" class="icon text-yellow-400"></i>
-                                            <span>Énergie</span>
-                                        </div>
-                                        <span class="text-sm font-mono" id="energy-display">100/100</span>
-                                    </div>
-                                    <div class="energy-bar">
-                                        <div class="energy-bar-fill" id="energy-fill" style="width: 100%;"></div>
-                                    </div>
-                                    <div class="text-xs text-gray-400">
-                                        Régénération: <span id="energy-regen">1</span>/min
-                                    </div>
-                                </div>
-
-                                <!-- Click Button -->
-                                <div class="click-area">
-                                    <button class="click-button" id="click-btn" onclick="performClick()">
-                                        <div class="click-button-content">
-                                            <i data-lucide="zap" class="icon-xl"></i>
-                                            <span class="click-text">CLIQUER</span>
-                                            <span class="click-power" id="click-power-display">+0.1 tokens</span>
-                                        </div>
-                                    </button>
-                                </div>
-
-                                <!-- Auto Mining Status -->
-                                <div id="auto-mining-status" class="hidden" style="background: rgba(136, 85, 255, 0.1); border: 1px solid rgba(136, 85, 255, 0.3); border-radius: 8px; padding: 12px; margin-top: 24px;">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-2">
-                                            <i data-lucide="cog" class="icon text-purple-400" style="animation: spin 2s linear infinite;"></i>
-                                            <span class="text-purple-400">Auto Mining Actif</span>
-                                        </div>
-                                        <span class="text-purple-400 font-mono" id="auto-mining-rate">+0.00/min</span>
-                                    </div>
-                                </div>
-
-                                <!-- Transfer Button -->
-                                <button id="transfer-btn" class="cyber-button" onclick="transferBalance()" style="width: 100%; margin-top: 24px; display: none;">
-                                    <i data-lucide="arrow-up" class="icon"></i>
-                                    <span style="margin-left: 8px;">Transférer vers le Solde Principal</span>
-                                </button>
-                            </div>
-                        </div>
+                <div class="click-game-container">
+                    <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Jeu de Clic</h2>
+                    
+                    <button class="click-button" onclick="performClick()" id="click-btn">
+                        <span class="click-text">CLICK!</span>
+                    </button>
+                    
+                    <div class="energy-bar-container">
+                        <div class="energy-bar" id="energy-fill"></div>
                     </div>
-
-                    <!-- Upgrades -->
-                    <div>
-                        <div class="cyber-card">
-                            <div class="p-6">
-                                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-                                    <i data-lucide="sparkles" class="icon text-purple-400"></i>
-                                    <span style="margin-left: 8px;">Améliorations</span>
-                                </h3>
-                                
-                                <div id="upgrades-list">
-                                    <!-- Energy Regeneration -->
-                                    <div class="upgrade-card" id="upgrade-energy-regen">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="flex items-center space-x-2">
-                                                <i data-lucide="bolt" class="icon text-yellow-400"></i>
-                                                <span class="font-semibold text-white text-sm">Energy Regeneration</span>
-                                            </div>
-                                            <span class="badge text-xs" id="energy-regen-level">Niveau 0</span>
-                                        </div>
-                                        <p class="text-xs text-gray-400 mb-3">Augmente la régénération d'énergie</p>
-                                        <div class="flex items-center justify-between">
-                                            <div class="text-xs">
-                                                <div class="text-cyber-green font-mono" id="energy-regen-price">50 tokens</div>
-                                                <div class="text-gray-400">+1 /min</div>
-                                            </div>
-                                            <button class="cyber-button text-xs" onclick="buyUpgrade('energy_regen')" id="energy-regen-btn">
-                                                Acheter
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Double Click -->
-                                    <div class="upgrade-card" id="upgrade-double-click">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="flex items-center space-x-2">
-                                                <i data-lucide="mouse-pointer" class="icon text-blue-400"></i>
-                                                <span class="font-semibold text-white text-sm">Double Click Power</span>
-                                            </div>
-                                            <span class="badge text-xs" id="double-click-level">Niveau 0</span>
-                                        </div>
-                                        <p class="text-xs text-gray-400 mb-3">Augmente les tokens par clic</p>
-                                        <div class="flex items-center justify-between">
-                                            <div class="text-xs">
-                                                <div class="text-cyber-green font-mono" id="double-click-price">100 tokens</div>
-                                                <div class="text-gray-400">+1 puissance</div>
-                                            </div>
-                                            <button class="cyber-button text-xs" onclick="buyUpgrade('double_click')" id="double-click-btn">
-                                                Acheter
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Auto Mining -->
-                                    <div class="upgrade-card" id="upgrade-auto-mining">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="flex items-center space-x-2">
-                                                <i data-lucide="cog" class="icon text-purple-400"></i>
-                                                <span class="font-semibold text-white text-sm">Auto Mining Bot</span>
-                                            </div>
-                                            <span class="badge text-xs" id="auto-mining-level">Niveau 0</span>
-                                        </div>
-                                        <p class="text-xs text-gray-400 mb-3">Génère des tokens automatiquement</p>
-                                        <div class="flex items-center justify-between">
-                                            <div class="text-xs">
-                                                <div class="text-cyber-green font-mono" id="auto-mining-price">200 tokens</div>
-                                                <div class="text-gray-400">+0.5 /min auto</div>
-                                            </div>
-                                            <button class="cyber-button text-xs" onclick="buyUpgrade('auto_mining')" id="auto-mining-btn">
-                                                Acheter
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Max Energy Boost -->
-                                    <div class="upgrade-card" id="upgrade-max-energy">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="flex items-center space-x-2">
-                                                <i data-lucide="gauge" class="icon text-orange-400"></i>
-                                                <span class="font-semibold text-white text-sm">Max Energy Boost</span>
-                                            </div>
-                                            <span class="badge text-xs" id="max-energy-level">Niveau 0</span>
-                                        </div>
-                                        <p class="text-xs text-gray-400 mb-3">+500 énergie maximum</p>
-                                        <div class="flex items-center justify-between">
-                                            <div class="text-xs">
-                                                <div class="text-cyber-green font-mono" id="max-energy-price">300 tokens</div>
-                                                <div class="text-gray-400">+500 énergie max</div>
-                                            </div>
-                                            <button class="cyber-button text-xs" onclick="buyUpgrade('max_energy')" id="max-energy-btn">
-                                                Acheter
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <p><span style="color: var(--cyber-yellow);">Énergie:</span> <span id="energy-display">100/100</span></p>
+                        <p><span style="color: var(--cyber-blue);">Régénération:</span> <span id="energy-regen">1.0</span>/min</p>
+                        <p><span style="color: var(--cyber-green);">Balance:</span> <span id="game-balance-display">0.000</span> tokens</p>
+                        <p><span style="color: var(--cyber-purple);">Clics Total:</span> <span id="total-clicks">0</span></p>
+                        <p><span style="color: var(--cyber-yellow);">Puissance:</span> <span id="click-power-display">+0.1 tokens</span></p>
                     </div>
                 </div>
             </div>
 
             <!-- Tasks Tab -->
             <div id="tab-tasks" class="tab-content">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold text-white">Tâches Disponibles</h2>
-                    <span class="badge">4 disponibles</span>
-                </div>
-                
-                <div class="space-y-4">
-                    <div class="cyber-card" id="task-telegram">
-                        <div class="p-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold text-white">Rejoindre Telegram</h3>
-                                    <p class="text-gray-400 text-sm">Rejoignez notre canal officiel Telegram</p>
-                                    <div class="flex items-center mt-2 space-x-2">
-                                        <i data-lucide="coins" class="icon text-cyber-green"></i>
-                                        <span class="text-cyber-green font-mono">+10.0</span>
-                                    </div>
-                                </div>
-                                <button class="cyber-button" onclick="completeTask('telegram')" id="telegram-btn">
-                                    Compléter
-                                    <i data-lucide="chevron-right" class="icon"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="cyber-card" id="task-daily">
-                        <div class="p-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold text-white">Bonus Quotidien</h3>
-                                    <p class="text-gray-400 text-sm">Connectez-vous quotidiennement pour votre bonus</p>
-                                    <div class="flex items-center mt-2 space-x-2">
-                                        <i data-lucide="coins" class="icon text-cyber-green"></i>
-                                        <span class="text-cyber-green font-mono">+5.0</span>
-                                    </div>
-                                </div>
-                                <button class="cyber-button" onclick="completeTask('daily')" id="daily-btn">
-                                    Compléter
-                                    <i data-lucide="chevron-right" class="icon"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="cyber-card" id="task-twitter">
-                        <div class="p-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold text-white">Suivre Twitter</h3>
-                                    <p class="text-gray-400 text-sm">Suivez notre compte Twitter pour les mises à jour</p>
-                                    <div class="flex items-center mt-2 space-x-2">
-                                        <i data-lucide="coins" class="icon text-cyber-green"></i>
-                                        <span class="text-cyber-green font-mono">+15.0</span>
-                                    </div>
-                                </div>
-                                <button class="cyber-button" onclick="completeTask('twitter')" id="twitter-btn">
-                                    Compléter
-                                    <i data-lucide="chevron-right" class="icon"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="cyber-card" id="task-referral">
-                        <div class="p-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold text-white">Parrainer un Ami</h3>
-                                    <p class="text-gray-400 text-sm">Invitez des amis et gagnez des bonus</p>
-                                    <div class="flex items-center mt-2 space-x-2">
-                                        <i data-lucide="coins" class="icon text-cyber-green"></i>
-                                        <span class="text-cyber-green font-mono">+50.0</span>
-                                    </div>
-                                </div>
-                                <button class="cyber-button" onclick="completeTask('referral')" id="referral-btn">
-                                    Compléter
-                                    <i data-lucide="chevron-right" class="icon"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Tâches Disponibles</h2>
+                <div id="tasks-container">
+                    <!-- Tasks will be loaded here -->
                 </div>
             </div>
 
             <!-- Shop Tab -->
             <div id="tab-shop" class="tab-content">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold text-white">Boutique Mining</h2>
-                    <select class="cyber-button" style="background: rgba(26, 26, 26, 0.8); border: 1px solid var(--cyber-border); color: var(--cyber-text);">
-                        <option value="all">Toutes catégories</option>
-                        <option value="equipment">Équipements</option>
-                        <option value="cloud_mining">Cloud Mining</option>
-                        <option value="contracts">Contrats</option>
-                    </select>
-                </div>
-                
-                <div class="products-grid">
-                    <!-- USB ASIC Miner -->
-                    <div class="cyber-card product-card">
-                        <div class="product-image">
-                            <img src="https://images.unsplash.com/photo-1695903213536-33162a52246d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85" alt="USB ASIC Miner">
-                            <div class="product-overlay">
-                                <span class="badge">équipement</span>
-                                <span class="badge badge-success" style="margin-top: 8px;">ABORDABLE</span>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="font-semibold text-white mb-2">USB ASIC Miner</h3>
-                            <p class="text-gray-400 text-sm mb-4">Mini miner ASIC parfait pour débutants - 330 MH/s</p>
-                            <div class="flex items-center justify-between">
-                                <span class="text-2xl font-bold text-cyber-green">$49.99</span>
-                                <button class="cyber-button">
-                                    <i data-lucide="shopping-cart" class="icon"></i>
-                                    <span style="margin-left: 8px;">Acheter</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- GTX 1660 Super -->
-                    <div class="cyber-card product-card">
-                        <div class="product-image">
-                            <img src="https://images.unsplash.com/photo-1634672350437-f9632adc9c3f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwzfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85" alt="GTX 1660 Super">
-                            <div class="product-overlay">
-                                <span class="badge">équipement</span>
-                                <span class="badge badge-success" style="margin-top: 8px;">ABORDABLE</span>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="font-semibold text-white mb-2">GTX 1660 Super</h3>
-                            <p class="text-gray-400 text-sm mb-4">GPU abordable parfait pour le minage crypto</p>
-                            <div class="flex items-center justify-between">
-                                <span class="text-2xl font-bold text-cyber-green">$199.99</span>
-                                <button class="cyber-button">
-                                    <i data-lucide="shopping-cart" class="icon"></i>
-                                    <span style="margin-left: 8px;">Acheter</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Starter Cloud Mining -->
-                    <div class="cyber-card product-card">
-                        <div class="product-image">
-                            <img src="https://images.unsplash.com/photo-1707075891545-41b982930351?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85" alt="Starter Cloud Mining">
-                            <div class="product-overlay">
-                                <span class="badge">cloud mining</span>
-                                <span class="badge badge-success" style="margin-top: 8px;">ABORDABLE</span>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="font-semibold text-white mb-2">Cloud Mining Débutant</h3>
-                            <p class="text-gray-400 text-sm mb-4">Parfait pour débuter - 30 jours Bitcoin cloud mining</p>
-                            <div class="flex items-center justify-between">
-                                <span class="text-2xl font-bold text-cyber-green">$29.99</span>
-                                <button class="cyber-button">
-                                    <i data-lucide="shopping-cart" class="icon"></i>
-                                    <span style="margin-left: 8px;">Acheter</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Basic Cloud Mining -->
-                    <div class="cyber-card product-card">
-                        <div class="product-image">
-                            <img src="https://images.unsplash.com/photo-1707075891545-41b982930351?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85" alt="Basic Cloud Mining">
-                            <div class="product-overlay">
-                                <span class="badge">cloud mining</span>
-                                <span class="badge badge-success" style="margin-top: 8px;">ABORDABLE</span>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="font-semibold text-white mb-2">Cloud Mining Basique</h3>
-                            <p class="text-gray-400 text-sm mb-4">Contrat Bitcoin cloud mining 3 mois</p>
-                            <div class="flex items-center justify-between">
-                                <span class="text-2xl font-bold text-cyber-green">$99.99</span>
-                                <button class="cyber-button">
-                                    <i data-lucide="shopping-cart" class="icon"></i>
-                                    <span style="margin-left: 8px;">Acheter</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mini Mining Contract -->
-                    <div class="cyber-card product-card">
-                        <div class="product-image">
-                            <img src="https://images.unsplash.com/photo-1645273603365-659e5622ea78?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHw0fHxmdXR1cmlzdGljJTIwZGFya3xlbnwwfHx8fDE3NTY5Mjc1MTN8MA&ixlib=rb-4.1.0&q=85" alt="Mini Mining Contract">
-                            <div class="product-overlay">
-                                <span class="badge">contrats</span>
-                                <span class="badge badge-success" style="margin-top: 8px;">ABORDABLE</span>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="font-semibold text-white mb-2">Mini Contrat Mining</h3>
-                            <p class="text-gray-400 text-sm mb-4">Petit contrat de minage parfait pour tester</p>
-                            <div class="flex items-center justify-between">
-                                <span class="text-2xl font-bold text-cyber-green">$99.99</span>
-                                <button class="cyber-button">
-                                    <i data-lucide="shopping-cart" class="icon"></i>
-                                    <span style="margin-left: 8px;">Acheter</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Premium Options -->
-                    <div class="cyber-card product-card">
-                        <div class="product-image">
-                            <img src="https://images.unsplash.com/photo-1695903213536-33162a52246d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85" alt="ASIC S19 Pro">
-                            <div class="product-overlay">
-                                <span class="badge">équipement</span>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="font-semibold text-white mb-2">ASIC Miner S19 Pro</h3>
-                            <p class="text-gray-400 text-sm mb-4">Hardware Bitcoin haute performance avec 110 TH/s</p>
-                            <div class="flex items-center justify-between">
-                                <span class="text-2xl font-bold text-cyber-green">$2,500</span>
-                                <button class="cyber-button">
-                                    <i data-lucide="shopping-cart" class="icon"></i>
-                                    <span style="margin-left: 8px;">Acheter</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Boutique Mining</h2>
+                <div id="shop-container">
+                    <!-- Shop items will be loaded here -->
                 </div>
             </div>
 
             <!-- Deposits Tab -->
             <div id="tab-deposits" class="tab-content">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold text-white">Dépôts & Vérification IDTX</h2>
-                    <button class="cyber-button" onclick="showAdminPanel()">
-                        <i data-lucide="settings" class="icon"></i>
-                        <span style="margin-left: 8px;">Panneau Admin</span>
-                    </button>
-                </div>
-
-                <!-- Payment Information -->
-                <div class="cyber-card">
-                    <div class="p-6">
-                        <h3 class="font-semibold text-white mb-4">Informations de Dépôt</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <p class="text-sm text-gray-400">Payeer</p>
-                                <p class="text-cyber-green font-mono">P1112145219</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-400">FaucetPay</p>
-                                <p class="text-cyber-green font-mono">maximlprive90@gmail.com</p>
-                            </div>
-                            <div class="text-center p-4" style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px;">
-                                <p class="text-cyber-green font-bold">🎉 BONUS DE 17% SUR TOUS LES DÉPÔTS ! 🎉</p>
-                                <p class="text-sm text-gray-400">Votre dépôt sera automatiquement majoré de 17% après vérification</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Transaction Verification Form -->
-                <div class="cyber-card mt-6">
-                    <div class="p-6">
-                        <h3 class="font-semibold text-white mb-4">
-                            <i data-lucide="search" class="icon text-cyan-400"></i>
-                            <span style="margin-left: 8px;">Vérification de Transaction (IDTX)</span>
-                        </h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">ID de Transaction (IDTX)</label>
-                                <input 
-                                    type="text" 
-                                    id="transaction-id-input" 
-                                    placeholder="Entrez votre ID de transaction..." 
-                                    class="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:border-cyan-400 focus:outline-none"
-                                >
-                                <p class="text-xs text-gray-500 mt-1">Tous les formats d'ID de transaction sont acceptés</p>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Méthode de Paiement</label>
-                                <select id="payment-method-select" class="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:border-cyan-400 focus:outline-none">
-                                    <option value="payeer">Payeer</option>
-                                    <option value="faucetpay">FaucetPay</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Montant (optionnel)</label>
-                                <input 
-                                    type="number" 
-                                    id="amount-input" 
-                                    placeholder="Montant de la transaction..." 
-                                    step="0.01"
-                                    class="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:border-cyan-400 focus:outline-none"
-                                >
-                            </div>
-                            
-                            <button onclick="verifyTransaction()" class="cyber-button w-full" id="verify-btn">
-                                <i data-lucide="check-circle" class="icon"></i>
-                                <span style="margin-left: 8px;">Vérifier Transaction</span>
-                            </button>
-                        </div>
-                        
-                        <!-- Verification Result -->
-                        <div id="verification-result" class="mt-4 hidden">
-                            <div class="p-4 rounded-lg border">
-                                <div class="flex items-center space-x-2 mb-2">
-                                    <i id="result-icon" class="icon"></i>
-                                    <span id="result-status" class="font-semibold"></span>
-                                </div>
-                                <p id="result-message" class="text-sm text-gray-300 mb-2"></p>
-                                <div id="result-details" class="text-xs text-gray-400"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Verification History -->
-                <div class="cyber-card mt-6">
-                    <div class="p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-semibold text-white">
-                                <i data-lucide="history" class="icon text-purple-400"></i>
-                                <span style="margin-left: 8px;">Historique des Vérifications</span>
-                            </h3>
-                            <button onclick="loadVerificationHistory()" class="cyber-button text-sm">
-                                <i data-lucide="refresh-cw" class="icon"></i>
-                                <span style="margin-left: 8px;">Actualiser</span>
-                            </button>
-                        </div>
-                        <div id="verification-history">
-                            <div class="text-center py-8" id="no-verifications">
-                                <p class="text-gray-400">Aucune vérification pour le moment</p>
-                                <p class="text-sm text-gray-400">Vérifiez votre première transaction pour commencer !</p>
-                            </div>
-                        </div>
-                    </div>
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Dépôts & Vérification IDTX</h2>
+                <div id="deposits-container">
+                    <!-- Deposit verification will be loaded here -->
                 </div>
             </div>
 
             <!-- Referral Tab -->
             <div id="tab-referral" class="tab-content">
-                <div class="text-center">
-                    <h2 class="text-xl font-bold text-white mb-4">Programme de Parrainage</h2>
-                    <p class="text-gray-400 mb-8">Invitez vos amis et gagnez 50 tokens par parrainage!</p>
-                    
-                    <div class="cyber-card" style="max-width: 500px; margin: 0 auto;">
-                        <div class="p-6">
-                            <div class="space-y-4">
-                                <div>
-                                    <p class="text-sm text-gray-400 mb-2">Votre Code de Parrainage</p>
-                                    <div class="flex items-center space-x-2">
-                                        <input value="" readonly class="cyber-button" style="flex: 1; background: rgba(26, 26, 26, 0.8); border: 1px solid var(--cyber-border); color: var(--cyber-text); padding: 8px;" id="referral-code-display">
-                                        <button class="cyber-button" onclick="copyReferralCode()">
-                                            <i data-lucide="copy" class="icon"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px; padding: 16px; margin-top: 16px;">
-                                    <div class="flex items-center justify-between">
-                                        <span>Total des gains de parrainage:</span>
-                                        <span class="text-cyber-green font-bold">0 tokens</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Programme de Parrainage</h2>
+                <div id="referral-container">
+                    <!-- Referral system will be loaded here -->
                 </div>
             </div>
 
             <!-- Mining Rigs Tab -->
             <div id="tab-mining-rigs" class="tab-content">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold text-white">
-                        <i data-lucide="server" class="icon text-orange-400"></i>
-                        <span style="margin-left: 8px;">Installations Mining</span>
-                    </h2>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm text-gray-400">Hashrate Total:</span>
-                        <span class="text-lg font-bold text-orange-400" id="total-hashrate">0.00 H/s</span>
-                    </div>
-                </div>
-
-                <!-- Mining Racks -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <!-- Rack 1 (2 slots) -->
-                    <div class="cyber-card">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-white mb-3 flex items-center">
-                                <i data-lucide="hard-drive" class="icon text-blue-400"></i>
-                                <span style="margin-left: 8px;">Rack Compact (2 slots)</span>
-                                <span class="ml-2 text-xs bg-blue-600 px-2 py-1 rounded">Prix: 500 tokens</span>
-                            </h3>
-                            <div class="grid grid-cols-2 gap-2" id="rack-1">
-                                <div class="mining-slot empty" data-rack="1" data-slot="1" onclick="openMinerSelection(1, 1)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                                <div class="mining-slot empty" data-rack="1" data-slot="2" onclick="openMinerSelection(1, 2)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-2 text-center">
-                                <button class="cyber-button text-xs" onclick="buyRack(1)" id="buy-rack-1">Acheter Rack</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Rack 2 (3 slots) -->
-                    <div class="cyber-card">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-white mb-3 flex items-center">
-                                <i data-lucide="server" class="icon text-purple-400"></i>
-                                <span style="margin-left: 8px;">Rack Standard (3 slots)</span>
-                                <span class="ml-2 text-xs bg-purple-600 px-2 py-1 rounded">Prix: 1200 tokens</span>
-                            </h3>
-                            <div class="grid grid-cols-3 gap-2" id="rack-2">
-                                <div class="mining-slot empty" data-rack="2" data-slot="1" onclick="openMinerSelection(2, 1)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                                <div class="mining-slot empty" data-rack="2" data-slot="2" onclick="openMinerSelection(2, 2)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                                <div class="mining-slot empty" data-rack="2" data-slot="3" onclick="openMinerSelection(2, 3)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-2 text-center">
-                                <button class="cyber-button text-xs" onclick="buyRack(2)" id="buy-rack-2" disabled>Acheter Rack</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Rack 3 (4 slots) -->
-                    <div class="cyber-card">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-white mb-3 flex items-center">
-                                <i data-lucide="database" class="icon text-red-400"></i>
-                                <span style="margin-left: 8px;">Rack Pro (4 slots)</span>
-                                <span class="ml-2 text-xs bg-red-600 px-2 py-1 rounded">Prix: 2500 tokens</span>
-                            </h3>
-                            <div class="grid grid-cols-2 gap-2" id="rack-3">
-                                <div class="mining-slot empty" data-rack="3" data-slot="1" onclick="openMinerSelection(3, 1)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                                <div class="mining-slot empty" data-rack="3" data-slot="2" onclick="openMinerSelection(3, 2)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                                <div class="mining-slot empty" data-rack="3" data-slot="3" onclick="openMinerSelection(3, 3)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                                <div class="mining-slot empty" data-rack="3" data-slot="4" onclick="openMinerSelection(3, 4)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-2 text-center">
-                                <button class="cyber-button text-xs" onclick="buyRack(3)" id="buy-rack-3" disabled>Acheter Rack</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Rack 4 (4 slots Premium) -->
-                    <div class="cyber-card">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-white mb-3 flex items-center">
-                                <i data-lucide="zap" class="icon text-yellow-400"></i>
-                                <span style="margin-left: 8px;">Rack Elite (4 slots)</span>
-                                <span class="ml-2 text-xs bg-yellow-600 px-2 py-1 rounded">Prix: 5000 tokens</span>
-                            </h3>
-                            <div class="grid grid-cols-2 gap-2" id="rack-4">
-                                <div class="mining-slot empty" data-rack="4" data-slot="1" onclick="openMinerSelection(4, 1)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                                <div class="mining-slot empty" data-rack="4" data-slot="2" onclick="openMinerSelection(4, 2)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                                <div class="mining-slot empty" data-rack="4" data-slot="3" onclick="openMinerSelection(4, 3)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                                <div class="mining-slot empty" data-rack="4" data-slot="4" onclick="openMinerSelection(4, 4)">
-                                    <div class="slot-content">
-                                        <i data-lucide="plus" class="icon text-gray-500"></i>
-                                        <span class="text-xs text-gray-500">Slot Vide</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-2 text-center">
-                                <button class="cyber-button text-xs" onclick="buyRack(4)" id="buy-rack-4" disabled>Acheter Rack</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Miners Inventory -->
-                <div class="cyber-card">
-                    <div class="p-6">
-                        <h3 class="font-semibold text-white mb-4">
-                            <i data-lucide="package" class="icon text-green-400"></i>
-                            <span style="margin-left: 8px;">Inventaire des Mineurs</span>
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="miners-inventory">
-                            <!-- Miners will be populated by JavaScript -->
-                        </div>
-                        <div class="mt-4 text-center">
-                            <button class="cyber-button" onclick="showMinerShop()">
-                                <i data-lucide="shopping-cart" class="icon"></i>
-                                <span style="margin-left: 8px;">Boutique de Mineurs</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mining Statistics -->
-                <div class="cyber-card mt-6">
-                    <div class="p-6">
-                        <h3 class="font-semibold text-white mb-4">
-                            <i data-lucide="trending-up" class="icon text-cyan-400"></i>
-                            <span style="margin-left: 8px;">Statistiques Mining</span>
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="text-center p-3 bg-gray-800 rounded">
-                                <div class="text-orange-400 text-xl font-bold" id="active-miners">0</div>
-                                <div class="text-xs text-gray-400">Mineurs Actifs</div>
-                            </div>
-                            <div class="text-center p-3 bg-gray-800 rounded">
-                                <div class="text-blue-400 text-xl font-bold" id="mining-revenue">0.00</div>
-                                <div class="text-xs text-gray-400">Revenus/min</div>
-                            </div>
-                            <div class="text-center p-3 bg-gray-800 rounded">
-                                <div class="text-green-400 text-xl font-bold" id="efficiency">0%</div>
-                                <div class="text-xs text-gray-400">Efficacité</div>
-                            </div>
-                            <div class="text-center p-3 bg-gray-800 rounded">
-                                <div class="text-purple-400 text-xl font-bold" id="power-consumption">0W</div>
-                                <div class="text-xs text-gray-400">Consommation</div>
-                            </div>
-                        </div>
-                    </div>
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Installations Mining</h2>
+                <div id="mining-rigs-container">
+                    <!-- Mining rigs will be loaded here -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Miner Selection Modal -->
-    <div id="miner-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" onclick="closeMinerModal()">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="cyber-card max-w-4xl w-full max-h-[80vh] overflow-y-auto" onclick="event.stopPropagation()">
-                <div class="p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-bold text-white">
-                            <i data-lucide="cpu" class="icon text-orange-400"></i>
-                            <span style="margin-left: 8px;">Sélectionner un Mineur</span>
-                        </h2>
-                        <button onclick="closeMinerModal()" class="text-gray-400 hover:text-white">
-                            <i data-lucide="x" class="icon"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="available-miners">
-                        <!-- Available miners will be populated by JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin Panel Modal -->
-    <div id="admin-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" onclick="closeAdminPanel()">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="cyber-card max-w-2xl w-full" onclick="event.stopPropagation()">
-                <div class="p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-bold text-white">
-                            <i data-lucide="shield" class="icon text-red-400"></i>
-                            <span style="margin-left: 8px;">Panneau d'Administration</span>
-                        </h2>
-                        <button onclick="closeAdminPanel()" class="text-gray-400 hover:text-white">
-                            <i data-lucide="x" class="icon"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Important Message -->
-                    <div class="bg-yellow-900 border border-yellow-600 rounded-lg p-4 mb-6">
-                        <div class="flex items-start space-x-3">
-                            <i data-lucide="alert-triangle" class="icon text-yellow-400 mt-0.5"></i>
-                            <div>
-                                <h3 class="font-semibold text-yellow-400 mb-2">Message Important - Sauvegarde des Données</h3>
-                                <p class="text-yellow-100 text-sm mb-3">
-                                    Pour analyser les données utilisateur et effectuer des vérifications avancées, 
-                                    veuillez exporter les données localStorage et les envoyer à:
-                                </p>
-                                <div class="bg-yellow-800 rounded p-2 font-mono text-yellow-100 text-sm">
-                                    maximlprive90@gmail.com
-                                </div>
-                                <p class="text-yellow-100 text-xs mt-2">
-                                    Cliquez sur "Exporter Données" ci-dessous pour obtenir le fichier de sauvegarde.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Admin Actions -->
-                    <div class="space-y-4">
-                        <button onclick="exportUserData()" class="cyber-button w-full">
-                            <i data-lucide="download" class="icon"></i>
-                            <span style="margin-left: 8px;">Exporter Données localStorage</span>
-                        </button>
-                        
-                        <button onclick="loadAdminStats()" class="cyber-button w-full">
-                            <i data-lucide="bar-chart" class="icon"></i>
-                            <span style="margin-left: 8px;">Statistiques de Vérification</span>
-                        </button>
-                        
-                        <div id="admin-stats" class="hidden mt-4 p-4 bg-gray-800 rounded-lg">
-                            <h4 class="font-semibold text-white mb-3">Statistiques Système</h4>
-                            <div id="stats-content" class="space-y-2 text-sm text-gray-300">
-                                <!-- Stats will be loaded here -->
-                            </div>
-                        </div>
-                        
-                        <div class="mt-6 pt-4 border-t border-gray-600">
-                            <h4 class="font-semibold text-white mb-3">Vérification en Lot</h4>
-                            <div class="space-y-3">
-                                <textarea 
-                                    id="bulk-transaction-ids" 
-                                    placeholder="Entrez les IDs de transaction, un par ligne..."
-                                    class="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white h-24 resize-none"
-                                ></textarea>
-                                <select id="bulk-payment-method" class="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white">
-                                    <option value="payeer">Payeer</option>
-                                    <option value="faucetpay">FaucetPay</option>
-                                </select>
-                                <button onclick="bulkVerifyTransactions()" class="cyber-button w-full">
-                                    <i data-lucide="check-square" class="icon"></i>
-                                    <span style="margin-left: 8px;">Vérification en Lot</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Notification Container -->
+    <div id="notification" class="notification"></div>
 
     <script>
-        // Local Storage Configuration
-        const GAME_DATA_KEY = 'mainet_game_data';
-        const USER_ID_KEY = 'mainet_user_id';
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://rjfxxtdfrviipcwpacvc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqZnh4dGRmcnZpaXBjd3BhY3ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc5MzIsImV4cCI6MjA3MjYzMzkzMn0.uBSgwh6vYP3xl4_YUisekInaMR8fDC-EEQTuf8MRyUQ';
         
-        // Auto-created user
+        // Initialize Supabase
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Global variables
         let currentUser = null;
-        
-        // Game State
-        let gameState = {
-            energy: 100,
-            maxEnergy: 100,
-            energyRegenRate: 1,
-            clickPower: 1,
-            autoMiningRate: 0.0,
-            totalClicks: 0,
-            gameBalance: 0.0,
-            mainBalance: 100.0, // Starting bonus
-            bonusBalance: 0.0,
-            upgrades: {
-                energy_regen: 0,
-                double_click: 0,
-                auto_mining: 0,
-                max_energy: 0
-            },
-            completedTasks: [],
-            lastEnergyUpdate: Date.now(),
-            deposits: [] // Liste des dépôts soumis
-        };
+        let gameState = null;
+        let authToken = null;
 
-        // Initialize Lucide icons
-        lucide.createIcons();
-
-        // Backend API Configuration
-        const API_BASE_URL = window.location.hostname === 'localhost' 
-            ? 'http://localhost:8001/api' 
-            : `${window.location.origin}/api`;
-
-        // Transaction Verification Functions
-        async function verifyTransaction() {
-            const transactionId = document.getElementById('transaction-id-input').value.trim();
-            const paymentMethod = document.getElementById('payment-method-select').value;
-            const amount = document.getElementById('amount-input').value;
-            const verifyBtn = document.getElementById('verify-btn');
-            const resultDiv = document.getElementById('verification-result');
-            
-            if (!transactionId) {
-                showNotification('Veuillez entrer un ID de transaction', 'error');
-                return;
-            }
-            
-            // Show loading state
-            verifyBtn.disabled = true;
-            verifyBtn.innerHTML = '<i data-lucide="loader-2" class="icon animate-spin"></i><span style="margin-left: 8px;">Vérification en cours...</span>';
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
             lucide.createIcons();
+        });
+
+        async function initializeApp() {
+            // Check if user is already logged in
+            const { data: { session } } = await supabaseClient.auth.getSession();
             
+            if (session) {
+                currentUser = session.user;
+                authToken = session.access_token;
+                showMainApp();
+                await loadGameData();
+            } else {
+                showAuthContainer();
+            }
+
+            // Start countdown timer
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+
+        function showAuthContainer() {
+            document.getElementById('auth-container').classList.remove('hidden');
+            document.getElementById('app-container').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('auth-container').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+        }
+
+        function showRegister() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const loginBtn = document.getElementById('login-btn');
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
             try {
-                const requestData = {
-                    transaction_id: transactionId,
-                    payment_method: paymentMethod,
-                    currency: 'USD'
-                };
+                loginBtn.innerHTML = '<div class="loading-spinner"></div>Connexion...';
+                loginBtn.disabled = true;
+
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) throw error;
+
+                currentUser = data.user;
+                authToken = data.session.access_token;
                 
-                if (amount && parseFloat(amount) > 0) {
-                    requestData.amount = parseFloat(amount);
-                }
-                
-                // Since we're using localStorage mode, we'll simulate the verification
-                // In a full backend integration, this would be a real API call
-                const result = await simulateTransactionVerification(requestData);
-                
-                // Display result
-                displayVerificationResult(result);
-                
-                // If verified, update user balance and save to localStorage
-                if (result.verified) {
-                    const totalCredit = (result.amount || 0) + (result.bonus_amount || 0);
-                    gameState.mainBalance += totalCredit;
-                    gameState.bonusBalance += result.bonus_amount || 0;
-                    
-                    // Add to verification history
-                    if (!gameState.verificationHistory) {
-                        gameState.verificationHistory = [];
-                    }
-                    
-                    gameState.verificationHistory.unshift({
-                        transaction_id: transactionId,
-                        payment_method: paymentMethod,
-                        amount: result.amount || 0,
-                        bonus_amount: result.bonus_amount || 0,
-                        status: result.status,
-                        verified_at: new Date().toISOString(),
-                        message: result.message
-                    });
-                    
-                    // Keep only last 20 verifications
-                    if (gameState.verificationHistory.length > 20) {
-                        gameState.verificationHistory = gameState.verificationHistory.slice(0, 20);
-                    }
-                    
-                    saveGameData();
-                    updateDisplay();
-                    loadVerificationHistory();
-                    
-                    showNotification(`Vérification réussie! +${totalCredit.toFixed(2)} crédité à votre compte (incluant 17% de bonus)`, 'success');
-                }
-                
-                // Clear form
-                document.getElementById('transaction-id-input').value = '';
-                document.getElementById('amount-input').value = '';
-                
+                showNotification('Connexion réussie !', 'success');
+                showMainApp();
+                await loadGameData();
+
             } catch (error) {
-                console.error('Verification error:', error);
-                displayVerificationResult({
-                    transaction_id: transactionId,
-                    verified: false,
-                    status: 'error',
-                    message: 'Erreur lors de la vérification: ' + error.message
-                });
-                showNotification('Erreur lors de la vérification', 'error');
+                console.error('Login error:', error);
+                showNotification('Erreur de connexion: ' + error.message, 'error');
             } finally {
-                // Reset button
-                verifyBtn.disabled = false;
-                verifyBtn.innerHTML = '<i data-lucide="check-circle" class="icon"></i><span style="margin-left: 8px;">Vérifier Transaction</span>';
-                lucide.createIcons();
+                loginBtn.innerHTML = '<span>Se Connecter</span>';
+                loginBtn.disabled = false;
             }
         }
-        
-        async function simulateTransactionVerification(requestData) {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Simple verification simulation
-            const transactionId = requestData.transaction_id;
-            const amount = requestData.amount || (Math.random() * 50 + 10); // Random amount between 10-60
-            
-            // Check if already verified
-            if (gameState.verificationHistory) {
-                const existing = gameState.verificationHistory.find(v => v.transaction_id === transactionId);
-                if (existing) {
-                    return {
-                        transaction_id: transactionId,
-                        verified: false,
-                        status: 'already_processed',
-                        message: 'Cette transaction a déjà été vérifiée',
-                        amount: existing.amount,
-                        bonus_amount: existing.bonus_amount
-                    };
-                }
-            }
-            
-            // Simulate success rate (90% success for demo)
-            const isValid = Math.random() > 0.1;
-            
-            if (isValid) {
-                const bonusAmount = Math.round(amount * 0.17 * 100) / 100; // 17% bonus
-                return {
-                    transaction_id: transactionId,
-                    verified: true,
-                    status: 'verified',
-                    amount: amount,
-                    bonus_amount: bonusAmount,
-                    message: `Transaction vérifiée avec succès! Montant: ${amount.toFixed(2)} USD + Bonus: ${bonusAmount.toFixed(2)} USD (17%)`,
-                    verification_data: {
-                        payment_method: requestData.payment_method,
-                        currency: 'USD',
-                        verified_at: new Date().toISOString()
-                    }
-                };
-            } else {
-                return {
-                    transaction_id: transactionId,
-                    verified: false,
-                    status: 'not_found',
-                    message: 'Transaction non trouvée ou invalide',
-                    amount: requestData.amount
-                };
-            }
-        }
-        
-        function displayVerificationResult(result) {
-            const resultDiv = document.getElementById('verification-result');
-            const resultIcon = document.getElementById('result-icon');
-            const resultStatus = document.getElementById('result-status');
-            const resultMessage = document.getElementById('result-message');
-            const resultDetails = document.getElementById('result-details');
-            
-            // Show result div
-            resultDiv.classList.remove('hidden');
-            
-            // Set styling based on result
-            if (result.verified) {
-                resultDiv.className = 'mt-4 p-4 rounded-lg border border-green-500 bg-green-900 bg-opacity-20';
-                resultIcon.setAttribute('data-lucide', 'check-circle');
-                resultIcon.className = 'icon text-green-400';
-                resultStatus.textContent = 'Vérifiée ✓';
-                resultStatus.className = 'font-semibold text-green-400';
-            } else {
-                resultDiv.className = 'mt-4 p-4 rounded-lg border border-red-500 bg-red-900 bg-opacity-20';
-                resultIcon.setAttribute('data-lucide', 'x-circle');
-                resultIcon.className = 'icon text-red-400';
-                resultStatus.textContent = 'Échec ✗';
-                resultStatus.className = 'font-semibold text-red-400';
-            }
-            
-            resultMessage.textContent = result.message;
-            
-            // Format details
-            let details = `ID: ${result.transaction_id}`;
-            if (result.amount) {
-                details += ` | Montant: ${result.amount.toFixed(2)} USD`;
-            }
-            if (result.bonus_amount) {
-                details += ` | Bonus: ${result.bonus_amount.toFixed(2)} USD`;
-            }
-            details += ` | Statut: ${result.status}`;
-            
-            resultDetails.textContent = details;
-            
-            // Recreate icons
-            lucide.createIcons();
-        }
-        
-        function loadVerificationHistory() {
-            const historyDiv = document.getElementById('verification-history');
-            const noVerificationsDiv = document.getElementById('no-verifications');
-            
-            if (!gameState.verificationHistory || gameState.verificationHistory.length === 0) {
-                noVerificationsDiv.classList.remove('hidden');
-                historyDiv.innerHTML = noVerificationsDiv.outerHTML;
-                return;
-            }
-            
-            let historyHTML = '';
-            gameState.verificationHistory.forEach((verification, index) => {
-                const statusClass = verification.status === 'verified' ? 'text-green-400' : 'text-red-400';
-                const statusIcon = verification.status === 'verified' ? 'check-circle' : 'x-circle';
-                const date = new Date(verification.verified_at).toLocaleString('fr-FR');
-                
-                historyHTML += `
-                    <div class="border border-gray-600 rounded-lg p-4 mb-3">
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center space-x-2">
-                                <i data-lucide="${statusIcon}" class="icon ${statusClass}"></i>
-                                <span class="font-mono text-sm text-gray-300">${verification.transaction_id}</span>
-                            </div>
-                            <span class="${statusClass} text-sm font-semibold">${verification.status}</span>
-                        </div>
-                        <div class="text-sm text-gray-400 mb-1">
-                            <span class="capitalize">${verification.payment_method}</span> | 
-                            ${verification.amount ? verification.amount.toFixed(2) + ' USD' : 'N/A'}
-                            ${verification.bonus_amount ? ' + ' + verification.bonus_amount.toFixed(2) + ' USD bonus' : ''}
-                        </div>
-                        <div class="text-xs text-gray-500">${date}</div>
-                        ${verification.message ? `<div class="text-xs text-gray-400 mt-1">${verification.message}</div>` : ''}
-                    </div>
-                `;
-            });
-            
-            historyDiv.innerHTML = historyHTML;
-            lucide.createIcons();
-        }
-        
-        // Admin Panel Functions
-        function showAdminPanel() {
-            document.getElementById('admin-modal').classList.remove('hidden');
-        }
-        
-        function closeAdminPanel() {
-            document.getElementById('admin-modal').classList.add('hidden');
-        }
-        
-        function exportUserData() {
-            const userData = {
-                user_id: localStorage.getItem(USER_ID_KEY),
-                game_data: gameState,
-                export_date: new Date().toISOString(),
-                browser_info: {
-                    user_agent: navigator.userAgent,
-                    language: navigator.language,
-                    platform: navigator.platform
-                },
-                localStorage_data: {
-                    game_data: localStorage.getItem(GAME_DATA_KEY),
-                    user_id: localStorage.getItem(USER_ID_KEY)
-                }
-            };
-            
-            const dataStr = JSON.stringify(userData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `mainet_user_data_${userData.user_id}_${Date.now()}.json`;
-            link.click();
-            
-            showNotification('Données exportées! Envoyez le fichier à maximlprive90@gmail.com', 'success');
-        }
-        
-        async function loadAdminStats() {
-            const statsDiv = document.getElementById('admin-stats');
-            const statsContent = document.getElementById('stats-content');
-            
-            // Show loading
-            statsContent.innerHTML = '<div class="text-center"><i data-lucide="loader-2" class="icon animate-spin"></i> Chargement...</div>';
-            statsDiv.classList.remove('hidden');
-            lucide.createIcons();
-            
-            // Simulate loading delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Calculate local stats
-            const verificationHistory = gameState.verificationHistory || [];
-            const totalVerifications = verificationHistory.length;
-            const verifiedCount = verificationHistory.filter(v => v.status === 'verified').length;
-            const failedCount = totalVerifications - verifiedCount;
-            const totalAmount = verificationHistory.reduce((sum, v) => sum + (v.amount || 0), 0);
-            const totalBonus = verificationHistory.reduce((sum, v) => sum + (v.bonus_amount || 0), 0);
-            
-            const statsHTML = `
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-gray-700 p-3 rounded">
-                        <div class="text-cyan-400 font-semibold">Total Vérifications</div>
-                        <div class="text-xl font-bold">${totalVerifications}</div>
-                    </div>
-                    <div class="bg-gray-700 p-3 rounded">
-                        <div class="text-green-400 font-semibold">Vérifiées</div>
-                        <div class="text-xl font-bold">${verifiedCount}</div>
-                    </div>
-                    <div class="bg-gray-700 p-3 rounded">
-                        <div class="text-red-400 font-semibold">Échouées</div>
-                        <div class="text-xl font-bold">${failedCount}</div>
-                    </div>
-                    <div class="bg-gray-700 p-3 rounded">
-                        <div class="text-yellow-400 font-semibold">Taux Succès</div>
-                        <div class="text-xl font-bold">${totalVerifications > 0 ? Math.round((verifiedCount / totalVerifications) * 100) : 0}%</div>
-                    </div>
-                </div>
-                <div class="mt-4 space-y-2">
-                    <div class="flex justify-between">
-                        <span>Montant Total Vérifié:</span>
-                        <span class="text-green-400 font-semibold">$${totalAmount.toFixed(2)}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Bonus Total Payé:</span>
-                        <span class="text-cyan-400 font-semibold">$${totalBonus.toFixed(2)}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Solde Utilisateur:</span>
-                        <span class="text-green-400 font-semibold">${gameState.mainBalance.toFixed(2)} tokens</span>
-                    </div>
-                </div>
-                <div class="mt-4 p-3 bg-yellow-900 rounded border border-yellow-600">
-                    <div class="text-yellow-400 text-sm font-semibold mb-1">Message localStorage:</div>
-                    <div class="text-yellow-100 text-xs">
-                        Pour l'analyse complète des données, exportez et envoyez à maximlprive90@gmail.com
-                    </div>
-                </div>
-            `;
-            
-            statsContent.innerHTML = statsHTML;
-        }
-        
-        async function bulkVerifyTransactions() {
-            const transactionIds = document.getElementById('bulk-transaction-ids').value
-                .split('\n')
-                .map(id => id.trim())
-                .filter(id => id.length > 0);
-            
-            const paymentMethod = document.getElementById('bulk-payment-method').value;
-            
-            if (transactionIds.length === 0) {
-                showNotification('Veuillez entrer au moins un ID de transaction', 'error');
-                return;
-            }
-            
-            if (transactionIds.length > 10) {
-                showNotification('Maximum 10 transactions par lot', 'error');
-                return;
-            }
-            
-            let successCount = 0;
-            let failCount = 0;
-            
-            showNotification(`Vérification de ${transactionIds.length} transactions en cours...`, 'info');
-            
-            for (const transactionId of transactionIds) {
-                try {
-                    const result = await simulateTransactionVerification({
-                        transaction_id: transactionId,
-                        payment_method: paymentMethod,
-                        currency: 'USD'
-                    });
-                    
-                    if (result.verified) {
-                        successCount++;
-                        // Add to balance and history like in single verification
-                        const totalCredit = (result.amount || 0) + (result.bonus_amount || 0);
-                        gameState.mainBalance += totalCredit;
-                        gameState.bonusBalance += result.bonus_amount || 0;
-                        
-                        if (!gameState.verificationHistory) {
-                            gameState.verificationHistory = [];
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            const registerBtn = document.getElementById('register-btn');
+            const username = document.getElementById('register-username').value;
+            const fullName = document.getElementById('register-fullname').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            try {
+                registerBtn.innerHTML = '<div class="loading-spinner"></div>Inscription...';
+                registerBtn.disabled = true;
+
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            username: username,
+                            full_name: fullName
                         }
-                        
-                        gameState.verificationHistory.unshift({
-                            transaction_id: transactionId,
-                            payment_method: paymentMethod,
-                            amount: result.amount || 0,
-                            bonus_amount: result.bonus_amount || 0,
-                            status: result.status,
-                            verified_at: new Date().toISOString(),
-                            message: result.message
-                        });
-                    } else {
-                        failCount++;
                     }
-                    
-                    // Small delay between requests
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    
-                } catch (error) {
-                    failCount++;
-                    console.error(`Error verifying ${transactionId}:`, error);
-                }
-            }
-            
-            // Keep only last 20 verifications
-            if (gameState.verificationHistory && gameState.verificationHistory.length > 20) {
-                gameState.verificationHistory = gameState.verificationHistory.slice(0, 20);
-            }
-            
-            saveGameData();
-            updateDisplay();
-            loadVerificationHistory();
-            
-            showNotification(`Vérification terminée: ${successCount} réussies, ${failCount} échouées`, 'success');
-            
-            // Clear form
-            document.getElementById('bulk-transaction-ids').value = '';
-        }
-
-        // Mining Rigs System
-        const MINERS_DATABASE = [
-            // Common Miners (0.5-1.5 H/s)
-            {
-                id: 'basic_cpu',
-                name: 'CPU Basique',
-                rarity: 'common',
-                hashrate: 0.5,
-                power: 65,
-                price: 100,
-                bonus: 'Aucun',
-                description: 'Un processeur de base pour débuter le mining'
-            },
-            {
-                id: 'entry_gpu',
-                name: 'GPU Entrée',
-                rarity: 'common',
-                hashrate: 0.8,
-                power: 120,
-                price: 200,
-                bonus: 'Aucun',
-                description: 'Carte graphique basique pour mining'
-            },
-            {
-                id: 'dual_core',
-                name: 'Dual Core Pro',
-                rarity: 'common',
-                hashrate: 1.2,
-                power: 95,
-                price: 300,
-                bonus: '+5% tokens/min',
-                description: 'Processeur dual core optimisé'
-            },
-
-            // Uncommon Miners (1.5-3.0 H/s)
-            {
-                id: 'quad_core',
-                name: 'Quad Core Elite',
-                rarity: 'uncommon',
-                hashrate: 2.0,
-                power: 140,
-                price: 500,
-                bonus: '+10% tokens/min',
-                description: 'Processeur quad core haute performance'
-            },
-            {
-                id: 'gtx_miner',
-                name: 'GTX Mining Beast',
-                rarity: 'uncommon',
-                hashrate: 2.5,
-                power: 180,
-                price: 700,
-                bonus: '+15% hashrate',
-                description: 'GPU GTX optimisé pour le mining'
-            },
-            {
-                id: 'asic_basic',
-                name: 'ASIC Starter',
-                rarity: 'uncommon',
-                hashrate: 3.0,
-                power: 220,
-                price: 900,
-                bonus: 'Faible consommation',
-                description: 'Premier ASIC abordable'
-            },
-
-            // Rare Miners (3.0-6.0 H/s)
-            {
-                id: 'rtx_3080',
-                name: 'RTX 3080 Mining',
-                rarity: 'rare',
-                hashrate: 4.2,
-                power: 320,
-                price: 1500,
-                bonus: '+25% rendement',
-                description: 'RTX 3080 pour mining intensif'
-            },
-            {
-                id: 'asic_s19',
-                name: 'Antminer S19',
-                rarity: 'rare',
-                hashrate: 5.0,
-                power: 400,
-                price: 2000,
-                bonus: '+30% efficacité',
-                description: 'ASIC professionnel S19'
-            },
-            {
-                id: 'custom_rig',
-                name: 'Rig Custom Pro',
-                rarity: 'rare',
-                hashrate: 5.8,
-                power: 380,
-                price: 2500,
-                bonus: '+20% tokens, -10% power',
-                description: 'Rig assemblé sur mesure'
-            },
-
-            // Epic Miners (6.0-12.0 H/s)
-            {
-                id: 'rtx_4090',
-                name: 'RTX 4090 Ultra',
-                rarity: 'epic',
-                hashrate: 8.5,
-                power: 450,
-                price: 4000,
-                bonus: '+40% rendement global',
-                description: 'Le nec plus ultra des GPU'
-            },
-            {
-                id: 'asic_s21',
-                name: 'Antminer S21 Pro',
-                rarity: 'epic',
-                hashrate: 10.0,
-                power: 520,
-                price: 5000,
-                bonus: '+50% hashrate, +25% tokens',
-                description: 'ASIC dernière génération'
-            },
-            {
-                id: 'quantum_chip',
-                name: 'Puce Quantique',
-                rarity: 'epic',
-                hashrate: 12.0,
-                power: 300,
-                price: 7500,
-                bonus: 'Technologie quantique',
-                description: 'Mining avec processeur quantique'
-            },
-
-            // Legendary Miners (12.0-25.0 H/s)
-            {
-                id: 'ai_processor',
-                name: 'Processeur IA',
-                rarity: 'legendary',
-                hashrate: 18.0,
-                power: 600,
-                price: 12000,
-                bonus: '+75% tokens, Auto-optimisation',
-                description: 'IA dédiée au mining crypto'
-            },
-            {
-                id: 'fusion_reactor',
-                name: 'Réacteur Fusion',
-                rarity: 'legendary',
-                hashrate: 22.0,
-                power: 0, // Self-powered
-                price: 20000,
-                bonus: 'Auto-alimenté, +100% tokens',
-                description: 'Énergie fusion pour mining illimité'
-            },
-
-            // Mythic Miners (25.0+ H/s)
-            {
-                id: 'black_hole',
-                name: 'Extracteur Trou Noir',
-                rarity: 'mythic',
-                hashrate: 50.0,
-                power: -100, // Generates power
-                price: 50000,
-                bonus: 'Génère de l\'énergie, +200% tokens',
-                description: 'Harnesses les trous noirs pour le mining'
-            },
-            {
-                id: 'mainet_core',
-                name: 'Cœur mAInet',
-                rarity: 'mythic',
-                hashrate: 100.0,
-                power: -500, // Massive power generation
-                price: 100000,
-                bonus: 'Source d\'énergie infinie, +500% tokens',
-                description: 'Le cœur même du réseau mAInet'
-            }
-        ];
-
-        let miningRigs = {
-            racks: {
-                1: { owned: false, slots: {} },
-                2: { owned: false, slots: {} },
-                3: { owned: false, slots: {} },
-                4: { owned: false, slots: {} }
-            },
-            miners: [], // User's miner inventory
-            totalHashrate: 0,
-            totalPower: 0,
-            miningRevenue: 0
-        };
-
-        let selectedRack = null;
-        let selectedSlot = null;
-
-        function openMinerSelection(rack, slot) {
-            if (!miningRigs.racks[rack].owned) {
-                showNotification('Vous devez d\'abord acheter ce rack!', 'error');
-                return;
-            }
-
-            selectedRack = rack;
-            selectedSlot = slot;
-            
-            // Populate available miners
-            const availableMinersDiv = document.getElementById('available-miners');
-            availableMinersDiv.innerHTML = '';
-
-            // Show owned miners that aren't currently installed
-            const availableMiners = miningRigs.miners.filter(miner => !miner.installed);
-            
-            if (availableMiners.length === 0) {
-                availableMinersDiv.innerHTML = `
-                    <div class="col-span-full text-center py-8">
-                        <p class="text-gray-400">Aucun mineur disponible</p>
-                        <button class="cyber-button mt-2" onclick="showMinerShop()">
-                            Acheter des Mineurs
-                        </button>
-                    </div>
-                `;
-            } else {
-                availableMiners.forEach(miner => {
-                    const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
-                    availableMinersDiv.innerHTML += createMinerCard(minerData, true);
                 });
-            }
 
-            // Show currently installed miner if any
-            const currentMiner = miningRigs.racks[rack].slots[slot];
-            if (currentMiner) {
-                const minerData = MINERS_DATABASE.find(m => m.id === currentMiner.id);
-                availableMinersDiv.innerHTML = `
-                    <div class="col-span-full mb-4">
-                        <h4 class="text-white font-semibold mb-2">Mineur Actuellement Installé:</h4>
-                        <div class="miner-card installed-miner" onclick="removeMiner(${rack}, ${slot})">
-                            ${createMinerCardContent(minerData)}
-                            <div class="mt-2 text-center">
-                                <button class="cyber-button text-xs bg-red-600">
-                                    <i data-lucide="trash-2" class="icon"></i>
-                                    Retirer
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ` + availableMinersDiv.innerHTML;
-            }
+                if (error) throw error;
 
-            document.getElementById('miner-modal').classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function closeMinerModal() {
-            document.getElementById('miner-modal').classList.add('hidden');
-            selectedRack = null;
-            selectedSlot = null;
-        }
-
-        function createMinerCard(minerData, clickable = false) {
-            const clickHandler = clickable ? `onclick="installMiner('${minerData.id}')"` : '';
-            return `
-                <div class="miner-card rarity-${minerData.rarity}" ${clickHandler}>
-                    ${createMinerCardContent(minerData)}
-                </div>
-            `;
-        }
-
-        function createMinerCardContent(minerData) {
-            const rarityColors = {
-                common: '#6b7280',
-                uncommon: '#10b981', 
-                rare: '#3b82f6',
-                epic: '#8b5cf6',
-                legendary: '#f59e0b',
-                mythic: '#ef4444'
-            };
-
-            return `
-                <div class="bonus-tag" style="background: ${rarityColors[minerData.rarity]}">${minerData.rarity.toUpperCase()}</div>
-                <h4 class="miner-name font-semibold text-white text-sm">${minerData.name}</h4>
-                <p class="text-xs text-gray-400 mt-1">${minerData.description}</p>
-                <div class="miner-stats">
-                    <span class="hashrate-display">${minerData.hashrate} H/s</span>
-                    <span class="power-display">${minerData.power}W</span>
-                </div>
-                <div class="text-xs text-cyan-400 mt-1">${minerData.bonus}</div>
-                <div class="text-xs text-green-400 mt-1">${minerData.price} tokens</div>
-            `;
-        }
-
-        function installMiner(minerId) {
-            if (!selectedRack || !selectedSlot) return;
-
-            const miner = miningRigs.miners.find(m => m.id === minerId && !m.installed);
-            if (!miner) return;
-
-            // Install the miner
-            miner.installed = true;
-            miningRigs.racks[selectedRack].slots[selectedSlot] = miner;
-
-            // Update the slot display
-            updateRackDisplay();
-            updateMiningStats();
-            closeMinerModal();
-            
-            const minerData = MINERS_DATABASE.find(m => m.id === minerId);
-            showNotification(`${minerData.name} installé avec succès!`);
-            saveGameData();
-        }
-
-        function removeMiner(rack, slot) {
-            const miner = miningRigs.racks[rack].slots[slot];
-            if (!miner) return;
-
-            // Remove from rack
-            delete miningRigs.racks[rack].slots[slot];
-            
-            // Mark as available in inventory
-            const inventoryMiner = miningRigs.miners.find(m => m.id === miner.id);
-            if (inventoryMiner) {
-                inventoryMiner.installed = false;
-            }
-
-            updateRackDisplay();
-            updateMiningStats();
-            closeMinerModal();
-            
-            const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
-            showNotification(`${minerData.name} retiré du rack`);
-            saveGameData();
-        }
-
-        function buyRack(rackId) {
-            const rackPrices = { 1: 500, 2: 1200, 3: 2500, 4: 5000 };
-            const price = rackPrices[rackId];
-
-            if (gameState.mainBalance < price) {
-                showNotification('Solde insuffisant pour acheter ce rack!', 'error');
-                return;
-            }
-
-            // Check if previous rack is owned (progression system)
-            if (rackId > 1 && !miningRigs.racks[rackId - 1].owned) {
-                showNotification('Vous devez acheter les racks précédents d\'abord!', 'error');
-                return;
-            }
-
-            gameState.mainBalance -= price;
-            miningRigs.racks[rackId].owned = true;
-
-            updateRackDisplay();
-            updateDisplay();
-            saveGameData();
-            
-            showNotification(`Rack ${rackId} acheté avec succès!`);
-        }
-
-        function updateRackDisplay() {
-            for (let rackId = 1; rackId <= 4; rackId++) {
-                const rack = miningRigs.racks[rackId];
-                const buyButton = document.getElementById(`buy-rack-${rackId}`);
-                
-                if (rack.owned) {
-                    buyButton.textContent = 'Possédé';
-                    buyButton.disabled = true;
-                    buyButton.classList.add('bg-green-600');
-                    
-                    // Update slots
-                    const rackElement = document.getElementById(`rack-${rackId}`);
-                    const slots = rackElement.querySelectorAll('.mining-slot');
-                    
-                    slots.forEach((slot, index) => {
-                        const slotNumber = index + 1;
-                        const installedMiner = rack.slots[slotNumber];
-                        
-                        if (installedMiner) {
-                            const minerData = MINERS_DATABASE.find(m => m.id === installedMiner.id);
-                            slot.className = 'mining-slot occupied mining-active';
-                            slot.innerHTML = `
-                                <div class="slot-content">
-                                    <div class="text-xs font-semibold text-green-400">${minerData.name}</div>
-                                    <div class="text-xs text-orange-400">${minerData.hashrate} H/s</div>
-                                </div>
-                            `;
-                        } else {
-                            slot.className = 'mining-slot empty';
-                            slot.innerHTML = `
-                                <div class="slot-content">
-                                    <i data-lucide="plus" class="icon text-gray-500"></i>
-                                    <span class="text-xs text-gray-500">Slot Vide</span>
-                                </div>
-                            `;
-                        }
-                    });
+                if (data.user && !data.user.email_confirmed_at) {
+                    showNotification('Vérifiez votre email pour confirmer l\'inscription !', 'success');
                 } else {
-                    // Enable/disable buy button based on prerequisites
-                    const canBuy = rackId === 1 || miningRigs.racks[rackId - 1].owned;
-                    buyButton.disabled = !canBuy;
+                    currentUser = data.user;
+                    authToken = data.session.access_token;
+                    showNotification('Inscription réussie !', 'success');
+                    showMainApp();
+                    await loadGameData();
                 }
+
+            } catch (error) {
+                console.error('Registration error:', error);
+                showNotification('Erreur d\'inscription: ' + error.message, 'error');
+            } finally {
+                registerBtn.innerHTML = '<span>S\'Inscrire</span>';
+                registerBtn.disabled = false;
             }
-            
-            lucide.createIcons();
         }
 
-        function updateMiningStats() {
-            let totalHashrate = 0;
-            let totalPower = 0;
-            let activeMiners = 0;
-            let miningRevenue = 0;
+        async function logout() {
+            try {
+                await supabaseClient.auth.signOut();
+                currentUser = null;
+                authToken = null;
+                gameState = null;
+                showAuthContainer();
+                showNotification('Déconnexion réussie', 'success');
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
 
-            // Calculate totals from all installed miners
-            Object.values(miningRigs.racks).forEach(rack => {
-                Object.values(rack.slots).forEach(miner => {
-                    const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
-                    if (minerData) {
-                        totalHashrate += minerData.hashrate;
-                        totalPower += Math.max(0, minerData.power); // Don't count negative (power generating)
-                        activeMiners++;
-                        
-                        // Base revenue: 0.1 tokens per H/s per minute
-                        let revenue = minerData.hashrate * 0.1;
-                        
-                        // Apply bonuses
-                        if (minerData.bonus.includes('+') && minerData.bonus.includes('tokens')) {
-                            const bonusMatch = minerData.bonus.match(/\+(\d+)%\s*tokens/);
-                            if (bonusMatch) {
-                                const bonusPercent = parseInt(bonusMatch[1]) / 100;
-                                revenue *= (1 + bonusPercent);
-                            }
-                        }
-                        
-                        miningRevenue += revenue;
+        async function loadGameData() {
+            try {
+                // Get user profile and game state from backend
+                const response = await fetch(`/api/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
                     }
                 });
-            });
 
-            miningRigs.totalHashrate = totalHashrate;
-            miningRigs.totalPower = totalPower;
-            miningRigs.miningRevenue = miningRevenue;
-
-            // Update displays
-            document.getElementById('total-hashrate').textContent = totalHashrate.toFixed(2) + ' H/s';
-            document.getElementById('active-miners').textContent = activeMiners;
-            document.getElementById('mining-revenue').textContent = miningRevenue.toFixed(2);
-            
-            const efficiency = totalPower > 0 ? Math.round((totalHashrate / totalPower) * 100) : 100;
-            document.getElementById('efficiency').textContent = efficiency + '%';
-            document.getElementById('power-consumption').textContent = totalPower + 'W';
-
-            // Add mining revenue to auto mining rate
-            gameState.autoMiningRate = (gameState.autoMiningRate || 0) + miningRevenue;
+                if (response.ok) {
+                    const data = await response.json();
+                    gameState = data.game_state;
+                    updateDisplay();
+                    loadTasks();
+                    loadShop();
+                    loadDeposits();
+                } else {
+                    console.error('Failed to load game data:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error loading game data:', error);
+                // Fallback to default state
+                gameState = {
+                    current_coins: 1000,
+                    main_balance: 1000,
+                    bonus_balance: 0,
+                    energy: 100,
+                    max_energy: 100,
+                    energy_regen_rate: 1.0,
+                    click_power: 1,
+                    total_clicks: 0
+                };
+                updateDisplay();
+            }
         }
 
-        function showMinerShop() {
-            // Create a simple miner shop
-            const shopHTML = MINERS_DATABASE.map(miner => `
-                <div class="miner-card rarity-${miner.rarity}" onclick="buyMiner('${miner.id}')">
-                    ${createMinerCardContent(miner)}
-                    <div class="mt-2 text-center">
-                        <button class="cyber-button text-xs">Acheter</button>
-                    </div>
-                </div>
-            `).join('');
+        async function saveGameData() {
+            if (!gameState || !authToken) return;
 
-            const availableMinersDiv = document.getElementById('available-miners');
-            availableMinersDiv.innerHTML = `
-                <div class="col-span-full mb-4">
-                    <h4 class="text-white font-semibold mb-4">Boutique de Mineurs</h4>
-                </div>
-                ${shopHTML}
-            `;
-
-            document.getElementById('miner-modal').classList.remove('hidden');
-            lucide.createIcons();
+            try {
+                await fetch(`/api/game/state`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(gameState)
+                });
+            } catch (error) {
+                console.error('Error saving game data:', error);
+            }
         }
 
-        function buyMiner(minerId) {
-            const minerData = MINERS_DATABASE.find(m => m.id === minerId);
-            if (!minerData) return;
+        function updateDisplay() {
+            if (!gameState) return;
 
-            if (gameState.mainBalance < minerData.price) {
-                showNotification('Solde insuffisant pour acheter ce mineur!', 'error');
+            document.getElementById('main-balance').textContent = (gameState.main_balance || 0).toFixed(2);
+            document.getElementById('bonus-balance').textContent = (gameState.bonus_balance || 0).toFixed(2);
+            document.getElementById('energy-display').textContent = `${gameState.energy || 100}/${gameState.max_energy || 100}`;
+            document.getElementById('energy-fill').style.width = `${((gameState.energy || 100) / (gameState.max_energy || 100)) * 100}%`;
+            document.getElementById('energy-regen').textContent = gameState.energy_regen_rate || 1.0;
+            document.getElementById('game-balance-display').textContent = (gameState.current_coins || 0).toFixed(3);
+            document.getElementById('total-clicks').textContent = gameState.total_clicks || 0;
+            document.getElementById('click-power-display').textContent = `+${((gameState.click_power || 1) * 0.1).toFixed(1)} tokens`;
+        }
+
+        function performClick() {
+            if (!gameState || gameState.energy <= 0) {
+                showNotification('Pas assez d\'énergie !', 'error');
                 return;
             }
 
-            gameState.mainBalance -= minerData.price;
+            gameState.energy = Math.max(0, gameState.energy - 1);
+            gameState.total_clicks = (gameState.total_clicks || 0) + 1;
             
-            // Add to inventory
-            miningRigs.miners.push({
-                id: minerId,
-                installed: false,
-                purchaseDate: new Date().toISOString()
-            });
+            const tokensEarned = (gameState.click_power || 1) * 0.1;
+            gameState.current_coins = (gameState.current_coins || 0) + tokensEarned;
+            gameState.main_balance = (gameState.main_balance || 0) + tokensEarned;
 
             updateDisplay();
-            updateMinersInventory();
             saveGameData();
-            
-            showNotification(`${minerData.name} acheté et ajouté à l'inventaire!`);
-            closeMinerModal();
+
+            // Visual feedback
+            const clickBtn = document.getElementById('click-btn');
+            clickBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                clickBtn.style.transform = 'scale(1)';
+            }, 100);
         }
 
-        function updateMinersInventory() {
-            const inventoryDiv = document.getElementById('miners-inventory');
-            if (!inventoryDiv) return;
-
-            const uninstalledMiners = miningRigs.miners.filter(miner => !miner.installed);
-            
-            if (uninstalledMiners.length === 0) {
-                inventoryDiv.innerHTML = `
-                    <div class="col-span-full text-center py-8">
-                        <p class="text-gray-400">Inventaire vide</p>
-                        <p class="text-sm text-gray-500">Achetez des mineurs pour commencer!</p>
-                    </div>
-                `;
-            } else {
-                inventoryDiv.innerHTML = uninstalledMiners.map(miner => {
-                    const minerData = MINERS_DATABASE.find(m => m.id === miner.id);
-                    return createMinerCard(minerData);
-                }).join('');
-            }
-
-            lucide.createIcons();
-        }
-
-        // Local Storage Functions
-        function getUserId() {
-            let userId = localStorage.getItem(USER_ID_KEY);
-            if (!userId) {
-                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-                localStorage.setItem(USER_ID_KEY, userId);
-            }
-            return userId;
-        }
-
-        function getGameData() {
-            const data = localStorage.getItem(GAME_DATA_KEY);
-            return data ? JSON.parse(data) : null;
-        }
-
-        function saveGameData() {
-            const dataToSave = {
-                ...gameState,
-                miningRigs: miningRigs
-            };
-            localStorage.setItem(GAME_DATA_KEY, JSON.stringify(dataToSave));
-        }
-
-        function generateReferralCode() {
-            return Math.random().toString(36).substring(2, 10).toUpperCase();
-        }
-
-        // Auto-initialize user and game
-        function initializeGame() {
-            const userId = getUserId();
-            
-            // Create auto user
-            currentUser = {
-                id: userId,
-                username: 'Joueur' + userId.slice(-4),
-                referralCode: generateReferralCode(),
-                createdAt: new Date().toISOString()
-            };
-            
-            // Load existing game data or create new
-            const savedData = getGameData();
-            if (savedData) {
-                gameState = { ...gameState, ...savedData };
-                // Load mining rigs data
-                if (savedData.miningRigs) {
-                    miningRigs = { ...miningRigs, ...savedData.miningRigs };
-                }
-                // Update energy based on time passed
-                updateEnergyFromTime();
-            } else {
-                // First time - show welcome message
-                setTimeout(() => {
-                    showNotification('🎉 Bienvenue sur mAInet! Vous commencez avec 100 tokens bonus!');
-                }, 1000);
-            }
-            
-            updateDisplay();
-            saveGameData();
-            
-            // Load verification history on initialization
-            loadVerificationHistory();
-            
-            // Initialize mining rigs display
-            updateRackDisplay();
-            updateMiningStats();
-            updateMinersInventory();
-        }
-
-        function updateEnergyFromTime() {
-            if (gameState.lastEnergyUpdate) {
-                const timePassed = (Date.now() - gameState.lastEnergyUpdate) / 60000; // minutes
-                const energyToAdd = Math.floor(timePassed * gameState.energyRegenRate);
-                
-                if (energyToAdd > 0) {
-                    gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + energyToAdd);
-                }
-                
-                // Auto mining rewards
-                if (gameState.autoMiningRate > 0) {
-                    const autoTokens = timePassed * gameState.autoMiningRate;
-                    gameState.gameBalance += autoTokens;
-                    
-                    if (autoTokens > 0.1) {
-                        setTimeout(() => {
-                            showNotification(`🤖 Auto mining: +${autoTokens.toFixed(2)} tokens gagnés pendant votre absence!`);
-                        }, 2000);
-                    }
-                }
-            }
-            
-            gameState.lastEnergyUpdate = Date.now();
-        }
-
-        // Countdown Timer
-        function updateCountdown() {
-            const targetDate = new Date('2026-03-29T00:00:00');
-            const now = new Date();
-            const difference = targetDate - now;
-
-            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-
-            document.getElementById('days').textContent = days;
-            document.getElementById('hours').textContent = hours;
-            document.getElementById('minutes').textContent = minutes;
-        }
-
-        // Update countdown every minute
-        setInterval(updateCountdown, 60000);
-        updateCountdown();
-
-        // Tab Management
         function showTab(tabName) {
             // Hide all tabs
             const tabs = document.querySelectorAll('.tab-content');
@@ -2912,317 +887,172 @@
             }
         }
 
-        function updateDisplay() {
-            document.getElementById('energy-display').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
-            document.getElementById('energy-fill').style.width = `${(gameState.energy / gameState.maxEnergy) * 100}%`;
-            document.getElementById('energy-regen').textContent = gameState.energyRegenRate;
-            document.getElementById('game-balance-display').textContent = gameState.gameBalance.toFixed(3);
-            document.getElementById('game-balance').textContent = gameState.gameBalance.toFixed(3);
-            document.getElementById('total-clicks').textContent = gameState.totalClicks;
-            document.getElementById('click-power-display').textContent = `+${(gameState.clickPower * 0.1).toFixed(1)} tokens`;
-            
-            // Update main stats
-            document.getElementById('main-balance').textContent = gameState.mainBalance.toFixed(2);
-            document.getElementById('bonus-balance').textContent = gameState.bonusBalance.toFixed(2);
-            document.getElementById('stats-balance').textContent = gameState.mainBalance.toFixed(2);
-            document.getElementById('stats-bonus').textContent = gameState.bonusBalance.toFixed(2);
-            document.getElementById('stats-earned').textContent = (gameState.mainBalance + gameState.bonusBalance).toFixed(2);
-            document.getElementById('stats-game').textContent = gameState.gameBalance.toFixed(3);
-            
-            // Update click button state
-            const clickBtn = document.getElementById('click-btn');
-            if (clickBtn) {
-                clickBtn.disabled = gameState.energy < 1;
+        function updateCountdown() {
+            const targetDate = new Date('2026-03-29T00:00:00Z').getTime();
+            const now = new Date().getTime();
+            const difference = targetDate - now;
+
+            if (difference > 0) {
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = String(days).padStart(3, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
             }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
             
-            // Show transfer button if game balance > 0
-            const transferBtn = document.getElementById('transfer-btn');
-            if (transferBtn) {
-                transferBtn.style.display = gameState.gameBalance > 0 ? 'block' : 'none';
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function loadTasks() {
+            const tasksContainer = document.getElementById('tasks-container');
+            tasksContainer.innerHTML = `
+                <div class="cyber-card">
+                    <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Tâches disponibles</h3>
+                    <p style="color: #ccc; text-align: center; padding: 20px;">
+                        Les tâches seront chargées depuis Supabase...
+                    </p>
+                </div>
+            `;
+        }
+
+        function loadShop() {
+            const shopContainer = document.getElementById('shop-container');
+            shopContainer.innerHTML = `
+                <div class="cyber-card">
+                    <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Boutique Mining</h3>
+                    <p style="color: #ccc; text-align: center; padding: 20px;">
+                        La boutique sera chargée depuis Supabase...
+                    </p>
+                </div>
+            `;
+        }
+
+        function loadDeposits() {
+            const depositsContainer = document.getElementById('deposits-container');
+            depositsContainer.innerHTML = `
+                <div class="cyber-card">
+                    <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Vérification IDTX</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">ID de Transaction (IDTX)</label>
+                            <input type="text" id="transaction-id-input" placeholder="Entrez votre ID de transaction..." 
+                                   class="auth-input" style="width: 100%; margin-bottom: 10px;">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Méthode de Paiement</label>
+                            <select id="payment-method-select" class="auth-input" style="width: 100%; margin-bottom: 10px;">
+                                <option value="payeer">Payeer</option>
+                                <option value="faucetpay">FaucetPay</option>
+                            </select>
+                        </div>
+                        
+                        <button onclick="verifyTransaction()" class="cyber-button" style="width: 100%;">
+                            <i data-lucide="check-circle" class="icon"></i>
+                            <span style="margin-left: 8px;">Vérifier Transaction</span>
+                        </button>
+                    </div>
+                    
+                    <div id="verification-result" class="hidden" style="margin-top: 15px;">
+                        <!-- Results will be displayed here -->
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        async function verifyTransaction() {
+            const transactionId = document.getElementById('transaction-id-input').value.trim();
+            const paymentMethod = document.getElementById('payment-method-select').value;
+            
+            if (!transactionId) {
+                showNotification('Veuillez entrer un ID de transaction', 'error');
+                return;
             }
-            
-            // Show auto mining status
-            const autoMiningStatus = document.getElementById('auto-mining-status');
-            if (autoMiningStatus) {
-                if (gameState.autoMiningRate > 0) {
-                    autoMiningStatus.classList.remove('hidden');
-                    const rateElement = document.getElementById('auto-mining-rate');
-                    if (rateElement) {
-                        rateElement.textContent = `+${gameState.autoMiningRate.toFixed(2)}/min`;
+
+            try {
+                const response = await fetch('/api/verify-transaction', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        transaction_id: transactionId,
+                        payment_method: paymentMethod
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    displayVerificationResult(result);
+                    
+                    if (result.verified) {
+                        await loadGameData(); // Refresh game state
+                        showNotification(`Vérification réussie! +${(result.amount + result.bonus_amount).toFixed(2)} crédité`, 'success');
                     }
                 } else {
-                    autoMiningStatus.classList.add('hidden');
+                    showNotification('Erreur lors de la vérification', 'error');
                 }
-            }
-            
-            // Update referral code if user is logged in
-            if (currentUser && currentUser.referralCode) {
-                const referralDisplay = document.getElementById('referral-code-display');
-                if (referralDisplay) {
-                    referralDisplay.value = currentUser.referralCode;
-                }
-            }
-            
-            // Update upgrade levels and prices
-            updateUpgradeDisplay();
-        }
-
-        function updateUpgradeDisplay() {
-            const upgrades = {
-                'energy_regen': { basePrice: 50, name: 'Energy Regeneration' },
-                'double_click': { basePrice: 100, name: 'Double Click Power' },
-                'auto_mining': { basePrice: 200, name: 'Auto Mining Bot' },
-                'max_energy': { basePrice: 300, name: 'Max Energy Boost' }
-            };
-
-            Object.keys(upgrades).forEach(type => {
-                const level = gameState.upgrades[type] || 0;
-                const price = upgrades[type].basePrice * Math.pow(1.5, level);
-                const maxed = level >= 20;
-
-                // Update level display
-                const levelElement = document.getElementById(`${type.replace('_', '-')}-level`);
-                if (levelElement) {
-                    levelElement.textContent = `Niveau ${level}`;
-                }
-
-                // Update price display
-                const priceElement = document.getElementById(`${type.replace('_', '-')}-price`);
-                if (priceElement) {
-                    priceElement.textContent = maxed ? 'MAX' : `${Math.floor(price)} tokens`;
-                }
-
-                // Update button
-                const btnElement = document.getElementById(`${type.replace('_', '-')}-btn`);
-                if (btnElement) {
-                    btnElement.textContent = maxed ? 'MAX' : 'Acheter';
-                    btnElement.disabled = maxed || gameState.mainBalance < price;
-                }
-            });
-        }
-
-        // Game Functions
-        function performClick() {
-            if (gameState.energy < 1) {
-                showNotification('Énergie insuffisante!', 'error');
-                return;
-            }
-            
-            gameState.energy -= 1;
-            gameState.totalClicks += 1;
-            gameState.lastEnergyUpdate = Date.now();
-            const tokensEarned = gameState.clickPower * 0.1;
-            gameState.gameBalance += tokensEarned;
-            
-            // Create click animation
-            const clickBtn = document.getElementById('click-btn');
-            const rect = clickBtn.getBoundingClientRect();
-            const animation = document.createElement('div');
-            animation.className = 'click-animation';
-            animation.textContent = `+${tokensEarned.toFixed(3)}`;
-            animation.style.left = `${rect.width / 2}px`;
-            animation.style.top = `${rect.height / 2}px`;
-            clickBtn.appendChild(animation);
-            
-            setTimeout(() => {
-                if (animation.parentNode) {
-                    animation.parentNode.removeChild(animation);
-                }
-            }, 1000);
-            
-            updateDisplay();
-            saveGameData();
-            showNotification(`+${tokensEarned.toFixed(3)} tokens gagnés!`);
-        }
-
-        function transferBalance() {
-            if (gameState.gameBalance <= 0) return;
-            
-            const transferred = gameState.gameBalance;
-            gameState.mainBalance += transferred;
-            gameState.gameBalance = 0;
-            
-            updateDisplay();
-            saveGameData();
-            showNotification(`${transferred.toFixed(3)} tokens transférés vers votre solde principal!`);
-        }
-
-        function buyUpgrade(type) {
-            const upgrades = {
-                'energy_regen': { price: 50, name: 'Energy Regeneration' },
-                'double_click': { price: 100, name: 'Double Click Power' },
-                'auto_mining': { price: 200, name: 'Auto Mining Bot' },
-                'max_energy': { price: 300, name: 'Max Energy Boost' }
-            };
-            
-            const upgrade = upgrades[type];
-            if (!upgrade) return;
-            
-            const currentLevel = gameState.upgrades[type] || 0;
-            const price = upgrade.price * Math.pow(1.5, currentLevel);
-            
-            if (currentLevel >= 20) {
-                showNotification('Amélioration au niveau maximum!', 'error');
-                return;
-            }
-            
-            if (gameState.mainBalance < price) {
-                showNotification('Solde insuffisant!', 'error');
-                return;
-            }
-            
-            gameState.mainBalance -= price;
-            gameState.upgrades[type] = currentLevel + 1;
-            
-            // Apply upgrade effects  
-            switch(type) {
-                case 'energy_regen':
-                    gameState.energyRegenRate += 1;
-                    gameState.maxEnergy += 10;
-                    break;
-                case 'double_click':
-                    gameState.clickPower += 1;
-                    break;
-                case 'auto_mining':
-                    gameState.autoMiningRate += 0.5;
-                    break;
-                case 'max_energy':
-                    gameState.maxEnergy += 500;
-                    gameState.energy = Math.min(gameState.energy + 500, gameState.maxEnergy);
-                    break;
-            }
-            
-            updateDisplay();
-            saveGameData();
-            showNotification(`${upgrade.name} amélioré! Niveau ${gameState.upgrades[type]}`);
-        }
-
-        function completeTask(taskType) {
-            if (gameState.completedTasks.includes(taskType)) {
-                showNotification('Tâche déjà complétée!', 'error');
-                return;
-            }
-            
-            const tasks = {
-                'telegram': { reward: 10, name: 'Telegram' },
-                'daily': { reward: 5, name: 'Daily Login' },
-                'twitter': { reward: 15, name: 'Twitter' },
-                'referral': { reward: 50, name: 'Referral' }
-            };
-            
-            const task = tasks[taskType];
-            if (!task) return;
-            
-            gameState.mainBalance += task.reward;
-            gameState.completedTasks.push(taskType);
-            
-            // Update button to show completed
-            const btn = document.getElementById(`${taskType}-btn`);
-            if (btn) {
-                btn.textContent = '✅ Complétée';
-                btn.disabled = true;
-                btn.style.background = 'rgba(0, 255, 136, 0.3)';
-            }
-            
-            updateDisplay();
-            saveGameData();
-            showNotification(`Tâche ${task.name} complétée! +${task.reward} tokens`);
-        }
-
-        function copyReferralCode() {
-            if (currentUser && currentUser.referralCode) {
-                navigator.clipboard.writeText(currentUser.referralCode);
-                showNotification('Code de parrainage copié!');
+            } catch (error) {
+                console.error('Verification error:', error);
+                showNotification('Erreur de connexion', 'error');
             }
         }
 
-        function showDepositModal() {
-            showNotification('💰 Utilisez Payeer (P1112145219) ou FaucetPay (maximlprive90@gmail.com) pour déposer des fonds. +17% de bonus automatique!');
-        }
-
-        function showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
+        function displayVerificationResult(result) {
+            const resultDiv = document.getElementById('verification-result');
+            const statusClass = result.verified ? 'success' : 'error';
+            const statusIcon = result.verified ? 'check-circle' : 'x-circle';
+            const statusColor = result.verified ? 'var(--cyber-green)' : '#ff4444';
             
-            let bgColor = 'rgba(0, 255, 136, 0.9)'; // success - green
-            if (type === 'error') {
-                bgColor = 'rgba(255, 68, 68, 0.9)'; // error - red
-            } else if (type === 'warning') {
-                bgColor = 'rgba(255, 193, 7, 0.9)'; // warning - yellow
-            }
-            
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: ${bgColor};
-                color: white;
-                padding: 12px 24px;
-                border-radius: 8px;
-                z-index: 1000;
-                font-family: 'Roboto Mono', monospace;
-                animation: slideIn 0.3s ease-out;
-                max-width: 300px;
-                word-wrap: break-word;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            resultDiv.innerHTML = `
+                <div style="border: 2px solid ${statusColor}; border-radius: 8px; padding: 15px; background: rgba(${result.verified ? '0, 255, 136' : '255, 68, 68'}, 0.1);">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <i data-lucide="${statusIcon}" style="color: ${statusColor}; margin-right: 8px;"></i>
+                        <span style="color: ${statusColor}; font-weight: bold;">
+                            ${result.verified ? 'Vérifiée ✓' : 'Échec ✗'}
+                        </span>
+                    </div>
+                    <p style="color: #ccc; margin-bottom: 8px;">${result.message}</p>
+                    <div style="font-size: 0.9rem; color: #aaa;">
+                        ID: ${result.transaction_id} | 
+                        ${result.amount ? `Montant: ${result.amount.toFixed(2)} USD` : ''} 
+                        ${result.bonus_amount ? `| Bonus: ${result.bonus_amount.toFixed(2)} USD` : ''}
+                    </div>
+                </div>
             `;
-            notification.textContent = message;
             
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease-out';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 5000);
+            resultDiv.classList.remove('hidden');
+            lucide.createIcons();
         }
 
         // Energy regeneration
-        function regenerateEnergy() {
-            if (gameState.energy < gameState.maxEnergy) {
-                gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + (gameState.energyRegenRate / 60));
-                gameState.lastEnergyUpdate = Date.now();
+        setInterval(() => {
+            if (gameState && gameState.energy < gameState.max_energy) {
+                gameState.energy = Math.min(gameState.max_energy, gameState.energy + (gameState.energy_regen_rate / 60));
                 updateDisplay();
+            }
+        }, 1000);
+
+        // Periodic save
+        setInterval(() => {
+            if (gameState) {
                 saveGameData();
             }
-        }
-
-        // Auto mining
-        function autoMining() {
-            let totalAutoMining = gameState.autoMiningRate || 0;
-            
-            // Add mining rigs revenue
-            if (miningRigs && miningRigs.miningRevenue) {
-                totalAutoMining += miningRigs.miningRevenue;
-            }
-            
-            if (totalAutoMining > 0) {
-                gameState.gameBalance += totalAutoMining / 60;
-                updateDisplay();
-                saveGameData();
-            }
-        }
-
-        // Start intervals
-        setInterval(regenerateEnergy, 1000); // Every second
-        setInterval(autoMining, 1000); // Every second
-
-        // Initialize game on page load
-        window.addEventListener('load', function() {
-            initializeGame();
-            
-            // Mark completed tasks
-            gameState.completedTasks.forEach(taskType => {
-                const btn = document.getElementById(`${taskType}-btn`);
-                if (btn) {
-                    btn.textContent = '✅ Complétée';
-                    btn.disabled = true;
-                    btn.style.background = 'rgba(0, 255, 136, 0.3)';
-                }
-            });
-        });
+        }, 30000);
     </script>
 </body>
 </html>
