@@ -164,6 +164,36 @@ class UserUpgrade(BaseModel):
 class ClickAction(BaseModel):
     clicks: int = 1
 
+# Payment Verification Models
+class TransactionVerification(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    transaction_id: str
+    amount: float
+    currency: str = "USD"
+    payment_method: PaymentMethod
+    status: str = "pending"  # pending, verified, failed, not_found
+    bonus_amount: float = 0.0
+    bonus_credited: bool = False
+    verification_data: Optional[Dict[str, Any]] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    verified_at: Optional[datetime] = None
+
+class VerificationRequest(BaseModel):
+    transaction_id: str
+    payment_method: PaymentMethod
+    amount: Optional[float] = None
+    currency: str = "USD"
+
+class VerificationResult(BaseModel):
+    transaction_id: str
+    verified: bool
+    status: str
+    amount: Optional[float] = None
+    bonus_amount: Optional[float] = None
+    message: str
+    verification_data: Optional[Dict[str, Any]] = None
+
 # Helper functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
