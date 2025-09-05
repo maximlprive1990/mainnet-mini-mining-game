@@ -239,15 +239,25 @@ class PayeerAPIClient:
                 
                 # Mock response - in reality, you'd call the actual Payeer API
                 # with proper authentication and parameters
-                mock_response = {
-                    "success": True,
-                    "transaction_found": True,
-                    "transaction_id": transaction_id,
-                    "amount": amount or 10.0,
-                    "currency": "USD",
-                    "status": "completed",
-                    "to_account": self.account
-                }
+                
+                # Simple validation: reject obviously invalid transaction IDs
+                if len(transaction_id) < 8 or transaction_id.upper().startswith("INVALID"):
+                    mock_response = {
+                        "success": False,
+                        "transaction_found": False,
+                        "transaction_id": transaction_id,
+                        "error": "Transaction not found or invalid"
+                    }
+                else:
+                    mock_response = {
+                        "success": True,
+                        "transaction_found": True,
+                        "transaction_id": transaction_id,
+                        "amount": amount or 10.0,
+                        "currency": "USD",
+                        "status": "completed",
+                        "to_account": self.account
+                    }
                 
                 return mock_response
                 
