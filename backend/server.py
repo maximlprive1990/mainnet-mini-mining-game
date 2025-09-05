@@ -82,6 +82,51 @@ class RigType(str, Enum):
     BLACK_HOLE = "black_hole"
     MAINET_CORE = "mainet_core"
 
+# Payment Gateway Classes
+class Payeer:
+    def __init__(self, account: str):
+        self.account = account
+    
+    async def verify_transaction(self, transaction_id: str, amount: float = None) -> Dict[str, Any]:
+        """
+        Verify a transaction with Payeer API
+        Note: This is a simplified implementation - actual Payeer API requires authentication
+        """
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                # In a real implementation, you would need API credentials and proper authentication
+                # For now, we simulate the verification process
+                await asyncio.sleep(1)  # Simulate API call delay
+                
+                # Simple validation: reject obviously invalid transaction IDs
+                if len(transaction_id) < 8 or transaction_id.upper().startswith("INVALID"):
+                    mock_response = {
+                        "success": False,
+                        "transaction_found": False,
+                        "transaction_id": transaction_id,
+                        "error": "Transaction not found or invalid"
+                    }
+                else:
+                    mock_response = {
+                        "success": True,
+                        "transaction_found": True,
+                        "transaction_id": transaction_id,
+                        "amount": amount or 10.0,
+                        "currency": "USD",
+                        "status": "completed",
+                        "to_account": self.account
+                    }
+                
+                return mock_response
+                
+        except Exception as e:
+            logger.error(f"Payeer API error: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "transaction_found": False
+            }
+
 # Pydantic Models
 class UserRegistration(BaseModel):
     email: EmailStr
