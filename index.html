@@ -2900,8 +2900,16 @@
             triggers.forEach(trigger => trigger.classList.remove('active'));
             
             // Show selected tab
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-            event.target.classList.add('active');
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+            
+            // Add active class to corresponding trigger
+            const correspondingTrigger = document.querySelector(`button[onclick="showTab('${tabName}')"]`);
+            if (correspondingTrigger) {
+                correspondingTrigger.classList.add('active');
+            }
         }
 
         function updateDisplay() {
