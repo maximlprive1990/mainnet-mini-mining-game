@@ -773,6 +773,16 @@ def main():
         ("Get All Upgrades", tester.test_get_upgrades),
         ("Get My Upgrades", tester.test_get_my_upgrades),
         ("Buy Upgrade", tester.test_buy_upgrade),
+        # IDTX VERIFICATION SYSTEM TESTS
+        ("Verify Payeer Transaction", tester.test_verify_payeer_transaction),
+        ("Verify FaucetPay Transaction", tester.test_verify_faucetpay_transaction),
+        ("Test 17% Bonus Calculation", tester.test_bonus_calculation),
+        ("Test Duplicate Transaction Prevention", tester.test_duplicate_transaction_prevention),
+        ("Get Verification History", tester.test_verification_history),
+        ("Test Invalid Transaction Handling", tester.test_invalid_transaction),
+        ("Test Balance Update After Verification", tester.test_balance_update_after_verification),
+        ("Get Admin Verification Stats", tester.test_admin_verification_stats),
+        ("Bulk Transaction Verification", tester.test_bulk_verification),
     ]
     
     failed_tests = []
