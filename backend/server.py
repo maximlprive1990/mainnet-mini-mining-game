@@ -1,213 +1,163 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+"""
+mAInet - Complete Supabase Integration
+FastAPI server with full Supabase integration for crypto mining game
+"""
+
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, WebSocket, WebSocketDisconnect
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Set
 import uuid
-from datetime import datetime, timezone
-import bcrypt
+from datetime import datetime, timezone, timedelta
 import jwt
 from enum import Enum
-import httpx
+import json
 import asyncio
-import hashlib
-import hmac
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+# Import Supabase configuration
+from supabase_config import get_supabase_client, get_supabase_admin_client
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Create the main app without a prefix
-app = FastAPI()
+# Initialize FastAPI app
+app = FastAPI(
+    title="mAInet Crypto Mining Game API",
+    description="Complete Supabase-powered crypto mining game backend",
+    version="2.0.0"
+)
 
-# Create a router with the /api prefix
+# CORS configuration
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize Supabase clients
+supabase = get_supabase_client()
+supabase_admin = get_supabase_admin_client()
+
+# API Router
 api_router = APIRouter(prefix="/api")
 
 # Security
 security = HTTPBearer()
-JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-change-in-production')
 
 # Enums
-class ProductCategory(str, Enum):
-    EQUIPMENT = "equipment"
-    CLOUD_MINING = "cloud_mining"
-    CONTRACTS = "contracts"
-
-class TaskType(str, Enum):
-    TELEGRAM_JOIN = "telegram_join"
-    SOCIAL_FOLLOW = "social_follow"
-    DAILY_LOGIN = "daily_login"
-    REFERRAL = "referral"
-
 class PaymentMethod(str, Enum):
     PAYEER = "payeer"
     FAUCETPAY = "faucetpay"
 
 class UpgradeType(str, Enum):
-    ENERGY_REGEN = "energy_regen"
-    DOUBLE_CLICK = "double_click"
-    AUTO_MINING = "auto_mining"
-    MAX_ENERGY = "max_energy"
+    ENERGY_REGEN = "ENERGY_REGEN"
+    CLICK_POWER = "CLICK_POWER"
+    AUTO_MINING = "AUTO_MINING"
+    MAX_ENERGY = "MAX_ENERGY"
 
-# Models
-class User(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    email: EmailStr
-    username: str
-    password_hash: str
-    balance: float = 0.0
-    bonus_balance: float = 0.0
-    total_earned: float = 0.0
-    referral_code: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
-    referred_by: Optional[str] = None
-    is_verified: bool = False
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    last_login: Optional[datetime] = None
+class RigType(str, Enum):
+    BASIC_CPU = "basic_cpu"
+    ENTRY_GPU = "entry_gpu"
+    DUAL_CORE = "dual_core"
+    QUAD_CORE = "quad_core"
+    GTX_MINER = "gtx_miner"
+    ASIC_BASIC = "asic_basic"
+    RTX_3080 = "rtx_3080"
+    ASIC_S19 = "asic_s19"
+    CUSTOM_RIG = "custom_rig"
+    RTX_4090 = "rtx_4090"
+    ASIC_S21 = "asic_s21"
+    QUANTUM_CHIP = "quantum_chip"
+    AI_PROCESSOR = "ai_processor"
+    FUSION_REACTOR = "fusion_reactor"
+    BLACK_HOLE = "black_hole"
+    MAINET_CORE = "mainet_core"
 
-class UserCreate(BaseModel):
+# Pydantic Models
+class UserRegistration(BaseModel):
     email: EmailStr
-    username: str
     password: str
-    referral_code: Optional[str] = None
+    username: str
+    full_name: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-class Product(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str
-    description: str
-    price: float
-    category: ProductCategory
-    image_url: str
-    stock: int = 100
-    features: List[str] = []
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+class GameStateUpdate(BaseModel):
+    current_level: Optional[int] = None
+    experience_points: Optional[int] = None
+    current_coins: Optional[int] = None
+    main_balance: Optional[float] = None
+    energy: Optional[int] = None
+    max_energy: Optional[int] = None
+    energy_regen_rate: Optional[float] = None
+    click_power: Optional[int] = None
+    auto_mining_rate: Optional[float] = None
+    total_clicks: Optional[int] = None
+    achievements: Optional[List[str]] = None
+    game_settings: Optional[Dict[str, Any]] = None
 
-class Task(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    title: str
-    description: str
-    reward: float
-    task_type: TaskType
-    requirements: str
-    is_active: bool = True
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+class MiningRigCreate(BaseModel):
+    rig_name: str
+    rig_type: RigType
 
-class UserTask(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    task_id: str
-    completed: bool = False
-    completed_at: Optional[datetime] = None
-    verified: bool = False
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class Deposit(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    amount: float
-    bonus_amount: float
-    payment_method: PaymentMethod
-    transaction_id: str
-    status: str = "pending"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class DepositCreate(BaseModel):
-    amount: float
-    payment_method: PaymentMethod
-    transaction_id: str
-
-# Game Models
-class UserGame(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    energy: int = 100
-    max_energy: int = 100
-    energy_regen_rate: int = 1  # per minute
-    click_power: int = 1
-    auto_mining_rate: float = 0.0  # tokens per minute
-    total_clicks: int = 0
-    game_balance: float = 0.0
-    last_energy_update: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class Upgrade(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str
-    description: str
-    upgrade_type: UpgradeType
-    base_price: float
-    price_multiplier: float = 1.5
-    effect_value: float
-    max_level: int = 20
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class UserUpgrade(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    upgrade_id: str
-    level: int = 0
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class ClickAction(BaseModel):
-    clicks: int = 1
-
-# Payment Verification Models
-class TransactionVerification(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    transaction_id: str
-    amount: float
-    currency: str = "USD"
-    payment_method: PaymentMethod
-    status: str = "pending"  # pending, verified, failed, not_found
-    bonus_amount: float = 0.0
-    bonus_credited: bool = False
-    verification_data: Optional[Dict[str, Any]] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    verified_at: Optional[datetime] = None
-
-class VerificationRequest(BaseModel):
+class TransactionVerificationRequest(BaseModel):
     transaction_id: str
     payment_method: PaymentMethod
     amount: Optional[float] = None
     currency: str = "USD"
 
-class VerificationResult(BaseModel):
-    transaction_id: str
-    verified: bool
-    status: str
-    amount: Optional[float] = None
-    bonus_amount: Optional[float] = None
-    message: str
-    verification_data: Optional[Dict[str, Any]] = None
+class ProfileUpdate(BaseModel):
+    username: Optional[str] = None
+    full_name: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
 
-# Helper functions
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+# WebSocket Connection Manager
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, Set[WebSocket]] = {}
+    
+    async def connect(self, websocket: WebSocket, user_id: str):
+        await websocket.accept()
+        if user_id not in self.active_connections:
+            self.active_connections[user_id] = set()
+        self.active_connections[user_id].add(websocket)
+    
+    def disconnect(self, websocket: WebSocket, user_id: str):
+        if user_id in self.active_connections:
+            self.active_connections[user_id].discard(websocket)
+            if not self.active_connections[user_id]:
+                del self.active_connections[user_id]
+    
+    async def send_personal_message(self, message: str, user_id: str):
+        if user_id in self.active_connections:
+            for websocket in self.active_connections[user_id].copy():
+                try:
+                    await websocket.send_text(message)
+                except:
+                    self.active_connections[user_id].discard(websocket)
 
-def verify_password(password: str, hashed: str) -> bool:
-    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+manager = ConnectionManager()
 
-def create_jwt_token(user_id: str) -> str:
-    payload = {"user_id": user_id, "exp": datetime.now(timezone.utc).timestamp() + 86400}  # 24 hours
-    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
-
+# JWT Token verification
 def verify_jwt_token(token: str) -> str:
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        return payload["user_id"]
+        # Decode JWT token from Supabase
+        payload = jwt.decode(token, options={"verify_signature": False})
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return user_id
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
@@ -215,903 +165,501 @@ def verify_jwt_token(token: str) -> str:
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     user_id = verify_jwt_token(credentials.credentials)
-    user = await db.users.find_one({"id": user_id})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return User(**user)
-
-# Payment API Clients
-class PayeerAPIClient:
-    def __init__(self):
-        self.account = "P1112145219"  # Target Payeer account
-        self.base_url = "https://payeer.com/ajax/api/api.php"
-        
-    async def verify_transaction(self, transaction_id: str, amount: float = None) -> Dict[str, Any]:
-        """
-        Verify a transaction with Payeer API
-        Note: This is a simplified implementation - actual Payeer API requires authentication
-        """
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                # In a real implementation, you would need API credentials and proper authentication
-                # For now, we simulate the verification process
-                await asyncio.sleep(1)  # Simulate API call delay
-                
-                # Mock response - in reality, you'd call the actual Payeer API
-                # with proper authentication and parameters
-                
-                # Simple validation: reject obviously invalid transaction IDs
-                if len(transaction_id) < 8 or transaction_id.upper().startswith("INVALID"):
-                    mock_response = {
-                        "success": False,
-                        "transaction_found": False,
-                        "transaction_id": transaction_id,
-                        "error": "Transaction not found or invalid"
-                    }
-                else:
-                    mock_response = {
-                        "success": True,
-                        "transaction_found": True,
-                        "transaction_id": transaction_id,
-                        "amount": amount or 10.0,
-                        "currency": "USD",
-                        "status": "completed",
-                        "to_account": self.account
-                    }
-                
-                return mock_response
-                
-        except Exception as e:
-            logger.error(f"Payeer API error: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e),
-                "transaction_found": False
-            }
-
-class FaucetPayAPIClient:
-    def __init__(self):
-        self.target_email = "maximlprive90@gmail.com"
-        self.base_url = "https://faucetpay.io/api/v1"
-        
-    async def verify_transaction(self, transaction_id: str, amount: float = None) -> Dict[str, Any]:
-        """
-        Verify a transaction with FaucetPay API
-        Note: This is a simplified implementation - actual FaucetPay API requires API key
-        """
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                # In a real implementation, you would need API key and proper authentication
-                # For now, we simulate the verification process
-                await asyncio.sleep(1)  # Simulate API call delay
-                
-                # Mock response - in reality, you'd call the actual FaucetPay API
-                # with proper authentication and parameters
-                
-                # Simple validation: reject obviously invalid transaction IDs
-                if len(transaction_id) < 8 or transaction_id.upper().startswith("INVALID"):
-                    mock_response = {
-                        "success": False,
-                        "transaction_found": False,
-                        "transaction_id": transaction_id,
-                        "error": "Transaction not found or invalid"
-                    }
-                else:
-                    mock_response = {
-                        "success": True,
-                        "transaction_found": True,
-                        "transaction_id": transaction_id,
-                        "amount": amount or 5.0,
-                        "currency": "USD",
-                        "status": "confirmed",
-                        "to_email": self.target_email
-                    }
-                
-                return mock_response
-                
-        except Exception as e:
-            logger.error(f"FaucetPay API error: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e),
-                "transaction_found": False
-            }
-
-class PaymentVerificationService:
-    def __init__(self):
-        self.payeer_client = PayeerAPIClient()
-        self.faucetpay_client = FaucetPayAPIClient()
-        
-    async def verify_transaction(self, transaction_id: str, payment_method: PaymentMethod, amount: float = None) -> Dict[str, Any]:
-        """Verify transaction using the appropriate payment method"""
-        try:
-            if payment_method == PaymentMethod.PAYEER:
-                result = await self.payeer_client.verify_transaction(transaction_id, amount)
-            elif payment_method == PaymentMethod.FAUCETPAY:
-                result = await self.faucetpay_client.verify_transaction(transaction_id, amount)
-            else:
-                return {
-                    "success": False,
-                    "error": f"Unsupported payment method: {payment_method}",
-                    "transaction_found": False
-                }
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"Payment verification error: {str(e)}")
-            return {
-                "success": False,
-                "error": str(e),
-                "transaction_found": False
-            }
     
-    def calculate_bonus(self, amount: float) -> float:
-        """Calculate 17% bonus for verified deposits"""
-        return round(amount * 0.17, 2)
-
-# Initialize payment verification service
-payment_service = PaymentVerificationService()
-
-async def get_or_create_user_game(user_id: str) -> UserGame:
-    user_game = await db.user_games.find_one({"user_id": user_id})
-    if not user_game:
-        user_game_obj = UserGame(user_id=user_id)
-        await db.user_games.insert_one(user_game_obj.dict())
-        return user_game_obj
-    return UserGame(**user_game)
-
-async def update_energy(user_game: UserGame) -> UserGame:
-    now = datetime.now(timezone.utc)
-    
-    # Ensure last_energy_update has timezone info
-    last_update = user_game.last_energy_update
-    if last_update.tzinfo is None:
-        last_update = last_update.replace(tzinfo=timezone.utc)
-    
-    time_diff = (now - last_update).total_seconds() / 60  # minutes
-    
-    energy_gained = int(time_diff * user_game.energy_regen_rate)
-    if energy_gained > 0:
-        user_game.energy = min(user_game.max_energy, user_game.energy + energy_gained)
-        user_game.last_energy_update = now
-        
-        # Update auto mining
-        auto_tokens = time_diff * user_game.auto_mining_rate
-        if auto_tokens > 0:
-            user_game.game_balance += auto_tokens
-            
-        await db.user_games.update_one(
-            {"user_id": user_game.user_id},
-            {"$set": user_game.dict()}
-        )
-    
-    return user_game
-
-# Routes
-@api_router.get("/")
-async def root():
-    return {"message": "mAInet Airdrop & Mining Shop API"}
-
-# Auth routes
-@api_router.post("/auth/register")
-async def register(user_data: UserCreate):
-    # Check if user exists
-    existing_user = await db.users.find_one({"$or": [{"email": user_data.email}, {"username": user_data.username}]})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="User already exists")
-    
-    # Create user
-    hashed_password = hash_password(user_data.password)
-    user = User(
-        email=user_data.email,
-        username=user_data.username,
-        password_hash=hashed_password,
-        referred_by=user_data.referral_code
-    )
-    
-    await db.users.insert_one(user.dict())
-    
-    # Create user game profile
-    user_game = UserGame(user_id=user.id)
-    await db.user_games.insert_one(user_game.dict())
-    
-    # Give referral bonus if applicable
-    if user_data.referral_code:
-        referrer = await db.users.find_one({"referral_code": user_data.referral_code})
-        if referrer:
-            await db.users.update_one(
-                {"id": referrer["id"]},
-                {"$inc": {"bonus_balance": 50.0, "total_earned": 50.0}}
-            )
-    
-    token = create_jwt_token(user.id)
-    return {"message": "User created successfully", "token": token, "user_id": user.id}
-
-@api_router.post("/auth/login")
-async def login(login_data: UserLogin):
-    user = await db.users.find_one({"email": login_data.email})
-    if not user or not verify_password(login_data.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    # Update last login
-    await db.users.update_one(
-        {"id": user["id"]},
-        {"$set": {"last_login": datetime.now(timezone.utc)}}
-    )
-    
-    token = create_jwt_token(user["id"])
-    return {"token": token, "user_id": user["id"]}
-
-@api_router.get("/auth/me", response_model=User)
-async def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
-
-# Products routes
-@api_router.get("/products", response_model=List[Product])
-async def get_products(category: Optional[ProductCategory] = None):
-    query = {"category": category} if category else {}
-    products = await db.products.find(query).to_list(length=None)
-    return [Product(**product) for product in products]
-
-@api_router.get("/products/{product_id}", response_model=Product)
-async def get_product(product_id: str):
-    product = await db.products.find_one({"id": product_id})
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return Product(**product)
-
-# Tasks routes
-@api_router.get("/tasks", response_model=List[Task])
-async def get_tasks():
-    tasks = await db.tasks.find({"is_active": True}).to_list(length=None)
-    return [Task(**task) for task in tasks]
-
-@api_router.post("/tasks/{task_id}/complete")
-async def complete_task(task_id: str, current_user: User = Depends(get_current_user)):
-    # Check if task exists
-    task = await db.tasks.find_one({"id": task_id, "is_active": True})
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-    
-    # Check if already completed
-    user_task = await db.user_tasks.find_one({"user_id": current_user.id, "task_id": task_id})
-    if user_task and user_task["completed"]:
-        raise HTTPException(status_code=400, detail="Task already completed")
-    
-    # Create or update user task
-    user_task_data = UserTask(
-        user_id=current_user.id,
-        task_id=task_id,
-        completed=True,
-        completed_at=datetime.now(timezone.utc),
-        verified=True  # Auto-verify for now
-    )
-    
-    if user_task:
-        await db.user_tasks.update_one(
-            {"id": user_task["id"]},
-            {"$set": user_task_data.dict()}
-        )
-    else:
-        await db.user_tasks.insert_one(user_task_data.dict())
-    
-    # Add reward to user balance
-    task_obj = Task(**task)
-    await db.users.update_one(
-        {"id": current_user.id},
-        {"$inc": {"balance": task_obj.reward, "total_earned": task_obj.reward}}
-    )
-    
-    return {"message": "Task completed successfully", "reward": task_obj.reward}
-
-@api_router.get("/tasks/my")
-async def get_my_tasks(current_user: User = Depends(get_current_user)):
-    user_tasks = await db.user_tasks.find({"user_id": current_user.id}).to_list(length=None)
-    return [UserTask(**user_task) for user_task in user_tasks]
-
-# Deposits routes
-@api_router.post("/deposits")
-async def create_deposit(deposit_data: DepositCreate, current_user: User = Depends(get_current_user)):
-    bonus_amount = deposit_data.amount * 0.17  # 17% bonus
-    
-    deposit = Deposit(
-        user_id=current_user.id,
-        amount=deposit_data.amount,
-        bonus_amount=bonus_amount,
-        payment_method=deposit_data.payment_method,
-        transaction_id=deposit_data.transaction_id,
-        status="pending"
-    )
-    
-    await db.deposits.insert_one(deposit.dict())
-    
-    # For demo purposes, auto-approve deposits
-    total_amount = deposit_data.amount + bonus_amount
-    await db.users.update_one(
-        {"id": current_user.id},
-        {"$inc": {"balance": deposit_data.amount, "bonus_balance": bonus_amount}}
-    )
-    
-    await db.deposits.update_one(
-        {"id": deposit.id},
-        {"$set": {"status": "approved"}}
-    )
-    
-    return {"message": "Deposit processed successfully", "bonus_amount": bonus_amount}
-
-@api_router.get("/deposits/my")
-async def get_my_deposits(current_user: User = Depends(get_current_user)):
-    deposits = await db.deposits.find({"user_id": current_user.id}).to_list(length=None)
-    return [Deposit(**deposit) for deposit in deposits]
-
-# Game routes
-@api_router.get("/game/status")
-async def get_game_status(current_user: User = Depends(get_current_user)):
-    user_game = await get_or_create_user_game(current_user.id)
-    user_game = await update_energy(user_game)
-    return user_game
-
-@api_router.post("/game/click")
-async def click_action(click_data: ClickAction, current_user: User = Depends(get_current_user)):
-    user_game = await get_or_create_user_game(current_user.id)
-    user_game = await update_energy(user_game)
-    
-    if user_game.energy < click_data.clicks:
-        raise HTTPException(status_code=400, detail="Not enough energy")
-    
-    # Calculate earnings
-    tokens_earned = click_data.clicks * user_game.click_power * 0.1  # 0.1 token per click
-    
-    # Update game stats
-    user_game.energy -= click_data.clicks
-    user_game.total_clicks += click_data.clicks
-    user_game.game_balance += tokens_earned
-    
-    await db.user_games.update_one(
-        {"user_id": current_user.id},
-        {"$set": user_game.dict()}
-    )
-    
-    return {
-        "tokens_earned": tokens_earned,
-        "energy_remaining": user_game.energy,
-        "total_clicks": user_game.total_clicks
-    }
-
-@api_router.post("/game/transfer")
-async def transfer_game_balance(current_user: User = Depends(get_current_user)):
-    user_game = await get_or_create_user_game(current_user.id)
-    
-    if user_game.game_balance <= 0:
-        raise HTTPException(status_code=400, detail="No balance to transfer")
-    
-    # Transfer game balance to main balance
-    await db.users.update_one(
-        {"id": current_user.id},
-        {"$inc": {"balance": user_game.game_balance, "total_earned": user_game.game_balance}}
-    )
-    
-    transferred_amount = user_game.game_balance
-    user_game.game_balance = 0.0
-    
-    await db.user_games.update_one(
-        {"user_id": current_user.id},
-        {"$set": {"game_balance": 0.0}}
-    )
-    
-    return {"transferred_amount": transferred_amount}
-
-# Upgrades routes
-@api_router.get("/upgrades")
-async def get_upgrades():
-    upgrades = await db.upgrades.find().to_list(length=None)
-    return [Upgrade(**upgrade) for upgrade in upgrades]
-
-@api_router.get("/upgrades/my")
-async def get_my_upgrades(current_user: User = Depends(get_current_user)):
-    user_upgrades = await db.user_upgrades.find({"user_id": current_user.id}).to_list(length=None)
-    return [UserUpgrade(**upgrade) for upgrade in user_upgrades]
-
-@api_router.post("/upgrades/{upgrade_id}/buy")
-async def buy_upgrade(upgrade_id: str, current_user: User = Depends(get_current_user)):
-    upgrade = await db.upgrades.find_one({"id": upgrade_id})
-    if not upgrade:
-        raise HTTPException(status_code=404, detail="Upgrade not found")
-    
-    upgrade_obj = Upgrade(**upgrade)
-    
-    # Get current level
-    user_upgrade = await db.user_upgrades.find_one({"user_id": current_user.id, "upgrade_id": upgrade_id})
-    current_level = user_upgrade["level"] if user_upgrade else 0
-    
-    if current_level >= upgrade_obj.max_level:
-        raise HTTPException(status_code=400, detail="Upgrade at max level")
-    
-    # Calculate price
-    price = upgrade_obj.base_price * (upgrade_obj.price_multiplier ** current_level)
-    
-    if current_user.balance < price:
-        raise HTTPException(status_code=400, detail="Insufficient balance")
-    
-    # Deduct balance
-    await db.users.update_one(
-        {"id": current_user.id},
-        {"$inc": {"balance": -price}}
-    )
-    
-    # Update upgrade level
-    new_level = current_level + 1
-    if user_upgrade:
-        await db.user_upgrades.update_one(
-            {"user_id": current_user.id, "upgrade_id": upgrade_id},
-            {"$set": {"level": new_level}}
-        )
-    else:
-        new_user_upgrade = UserUpgrade(
-            user_id=current_user.id,
-            upgrade_id=upgrade_id,
-            level=new_level
-        )
-        await db.user_upgrades.insert_one(new_user_upgrade.dict())
-    
-    # Apply upgrade effects to user game
-    user_game = await get_or_create_user_game(current_user.id)
-    
-    if upgrade_obj.upgrade_type == UpgradeType.ENERGY_REGEN:
-        user_game.energy_regen_rate += upgrade_obj.effect_value
-        user_game.max_energy += 10  # Bonus max energy
-    elif upgrade_obj.upgrade_type == UpgradeType.DOUBLE_CLICK:
-        user_game.click_power += upgrade_obj.effect_value
-    elif upgrade_obj.upgrade_type == UpgradeType.AUTO_MINING:
-        user_game.auto_mining_rate += upgrade_obj.effect_value
-    elif upgrade_obj.upgrade_type == UpgradeType.MAX_ENERGY:
-        user_game.max_energy += upgrade_obj.effect_value
-        user_game.energy = min(user_game.energy + upgrade_obj.effect_value, user_game.max_energy)  # Also add current energy
-    
-    await db.user_games.update_one(
-        {"user_id": current_user.id},
-        {"$set": user_game.dict()}
-    )
-    
-    return {"message": "Upgrade purchased successfully", "new_level": new_level, "price": price}
-
-# Stats route
-@api_router.get("/stats")
-async def get_stats(current_user: User = Depends(get_current_user)):
-    user_tasks_count = await db.user_tasks.count_documents({"user_id": current_user.id, "completed": True})
-    total_deposits = await db.deposits.aggregate([
-        {"$match": {"user_id": current_user.id, "status": "approved"}},
-        {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
-    ]).to_list(length=1)
-    
-    total_deposited = total_deposits[0]["total"] if total_deposits else 0
-    
-    # Get game stats
-    user_game = await get_or_create_user_game(current_user.id)
-    user_game = await update_energy(user_game)
-    
-    return {
-        "balance": current_user.balance,
-        "bonus_balance": current_user.bonus_balance,
-        "total_earned": current_user.total_earned,
-        "completed_tasks": user_tasks_count,
-        "total_deposited": total_deposited,
-        "referral_code": current_user.referral_code,
-        "game_stats": {
-            "energy": user_game.energy,
-            "max_energy": user_game.max_energy,
-            "click_power": user_game.click_power,
-            "auto_mining_rate": user_game.auto_mining_rate,
-            "total_clicks": user_game.total_clicks,
-            "game_balance": user_game.game_balance
-        }
-    }
-
-# Initialize sample data
-@api_router.post("/init-data")
-async def init_sample_data():
-    # Clear existing data
-    await db.products.delete_many({})
-    await db.tasks.delete_many({})
-    await db.upgrades.delete_many({})
-    
-    # Sample products - More affordable options
-    products = [
-        # Affordable Mining Equipment
-        Product(
-            name="USB ASIC Miner",
-            description="Mini ASIC miner perfect for beginners - 330 MH/s",
-            price=49.99,
-            category=ProductCategory.EQUIPMENT,
-            image_url="https://images.unsplash.com/photo-1695903213536-33162a52246d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85",
-            features=["330 MH/s", "USB Powered", "Plug & Play", "Low Power"]
-        ),
-        Product(
-            name="GTX 1660 Super",
-            description="Budget-friendly GPU perfect for crypto mining",
-            price=199.99,
-            category=ProductCategory.EQUIPMENT,
-            image_url="https://images.unsplash.com/photo-1634672350437-f9632adc9c3f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwzfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85",
-            features=["6GB GDDR6", "125W TDP", "Ethereum Ready", "Great ROI"]
-        ),
-        Product(
-            name="ASIC Miner S19 Pro",
-            description="High-performance Bitcoin mining hardware with 110 TH/s hashrate",
-            price=2500.0,
-            category=ProductCategory.EQUIPMENT,
-            image_url="https://images.unsplash.com/photo-1695903213536-33162a52246d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85",
-            features=["110 TH/s", "3250W Power", "SHA-256 Algorithm", "Water Cooling"]
-        ),
-        Product(
-            name="RTX 4090 Mining Rig",
-            description="Professional GPU mining setup with 8x RTX 4090 cards",
-            price=15000.0,
-            category=ProductCategory.EQUIPMENT,
-            image_url="https://images.unsplash.com/photo-1634672350437-f9632adc9c3f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwzfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85",
-            features=["8x RTX 4090", "High Efficiency", "Multiple Algorithms", "Remote Management"]
-        ),
-        
-        # Affordable Cloud Mining
-        Product(
-            name="Starter Cloud Mining 100 GH/s",
-            description="Perfect for beginners - 30 days Bitcoin cloud mining",
-            price=29.99,
-            category=ProductCategory.CLOUD_MINING,
-            image_url="https://images.unsplash.com/photo-1707075891545-41b982930351?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85",
-            features=["100 GH/s", "30 Days", "Daily Payouts", "No Maintenance"]
-        ),
-        Product(
-            name="Basic Cloud Mining 500 GH/s",
-            description="3 months Bitcoin cloud mining contract",
-            price=99.99,
-            category=ProductCategory.CLOUD_MINING,
-            image_url="https://images.unsplash.com/photo-1707075891545-41b982930351?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85",
-            features=["500 GH/s", "3 Months", "Instant Start", "24/7 Support"]
-        ),
-        Product(
-            name="Bitcoin Cloud Mining 1 TH/s",
-            description="1 year Bitcoin cloud mining contract",
-            price=500.0,
-            category=ProductCategory.CLOUD_MINING,
-            image_url="https://images.unsplash.com/photo-1707075891545-41b982930351?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85",
-            features=["1 TH/s Hashrate", "1 Year Contract", "Daily Payouts", "Zero Maintenance"]
-        ),
-        Product(
-            name="Ethereum Cloud Mining 100 MH/s",
-            description="6 months Ethereum cloud mining package",
-            price=300.0,
-            category=ProductCategory.CLOUD_MINING,
-            image_url="https://images.unsplash.com/photo-1694219782948-afcab5c095d3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHw0fHxjcnlwdG9jdXJyZW5jeSUyMG1pbmluZ3xlbnwwfHx8fDE3NTY5Mjc1MDd8MA&ixlib=rb-4.1.0&q=85",
-            features=["100 MH/s Hashrate", "6 Months Contract", "Instant Activation", "24/7 Support"]
-        ),
-        
-        # Mining Contracts
-        Product(
-            name="Mini Mining Contract",
-            description="Small mining contract perfect for testing",
-            price=99.99,
-            category=ProductCategory.CONTRACTS,
-            image_url="https://images.unsplash.com/photo-1645273603365-659e5622ea78?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHw0fHxmdXR1cmlzdGljJTIwZGFya3xlbnwwfHx8fDE3NTY5Mjc1MTN8MA&ixlib=rb-4.1.0&q=85",
-            features=["90 Days Duration", "Multiple Coins", "Easy Start", "Support Included"]
-        ),
-        Product(
-            name="Premium Mining Contract",
-            description="Exclusive mining contract with guaranteed returns",
-            price=1000.0,
-            category=ProductCategory.CONTRACTS,
-            image_url="https://images.unsplash.com/photo-1645273603365-659e5622ea78?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHw0fHxmdXR1cmlzdGljJTIwZGFya3xlbnwwfHx8fDE3NTY5Mjc1MTN8MA&ixlib=rb-4.1.0&q=85",
-            features=["Guaranteed ROI", "Multi-Coin Mining", "Flexible Terms", "Priority Support"]
-        )
-    ]
-    
-    for product in products:
-        await db.products.insert_one(product.dict())
-    
-    # Sample tasks
-    tasks = [
-        Task(
-            title="Join Telegram Channel",
-            description="Join our official Telegram channel and stay updated",
-            reward=10.0,
-            task_type=TaskType.TELEGRAM_JOIN,
-            requirements="@mAInet_official"
-        ),
-        Task(
-            title="Daily Login Bonus",
-            description="Login daily to claim your bonus",
-            reward=5.0,
-            task_type=TaskType.DAILY_LOGIN,
-            requirements="Login every day"
-        ),
-        Task(
-            title="Follow Twitter",
-            description="Follow our Twitter account for updates",
-            reward=15.0,
-            task_type=TaskType.SOCIAL_FOLLOW,
-            requirements="@mAInet_crypto"
-        ),
-        Task(
-            title="Refer a Friend",
-            description="Invite friends and earn bonus",
-            reward=50.0,
-            task_type=TaskType.REFERRAL,
-            requirements="Share referral link"
-        )
-    ]
-    
-    for task in tasks:
-        await db.tasks.insert_one(task.dict())
-    
-    # Sample upgrades
-    upgrades = [
-        Upgrade(
-            name="Energy Regeneration",
-            description="Increase energy regeneration rate",
-            upgrade_type=UpgradeType.ENERGY_REGEN,
-            base_price=50.0,
-            price_multiplier=1.5,
-            effect_value=1.0,  # +1 energy per minute
-            max_level=20
-        ),
-        Upgrade(
-            name="Double Click Power",
-            description="Increase tokens earned per click",
-            upgrade_type=UpgradeType.DOUBLE_CLICK,
-            base_price=100.0,
-            price_multiplier=1.8,
-            effect_value=1.0,  # +1 click power
-            max_level=15
-        ),
-        Upgrade(
-            name="Auto Mining Bot",
-            description="Automatically earn tokens over time",
-            upgrade_type=UpgradeType.AUTO_MINING,
-            base_price=200.0,
-            price_multiplier=2.0,
-            effect_value=0.5,  # +0.5 tokens per minute
-            max_level=10
-        ),
-        Upgrade(
-            name="Max Energy Boost",
-            description="Increase maximum energy capacity by 500",
-            upgrade_type=UpgradeType.MAX_ENERGY,
-            base_price=300.0,
-            price_multiplier=2.5,
-            effect_value=500.0,  # +500 max energy
-            max_level=5
-        )
-    ]
-    
-    for upgrade in upgrades:
-        await db.upgrades.insert_one(upgrade.dict())
-    
-    return {"message": "Sample data initialized successfully"}
-
-# Payment Verification Routes
-@api_router.post("/verify-transaction", response_model=VerificationResult)
-async def verify_transaction(
-    request: VerificationRequest,
-    current_user: User = Depends(get_current_user)
-):
-    """Verify a transaction ID using the appropriate payment API"""
+    # Get user profile from Supabase
     try:
-        # Check if transaction was already verified
-        existing_verification = await db.transaction_verifications.find_one({
-            "transaction_id": request.transaction_id,
-            "user_id": current_user.id
+        profile_result = supabase.table('profiles').select('*').eq('id', user_id).execute()
+        if not profile_result.data:
+            raise HTTPException(status_code=404, detail="User profile not found")
+        return profile_result.data[0]
+    except Exception as e:
+        logger.error(f"Error fetching user profile: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch user profile")
+
+# Authentication Endpoints
+@api_router.post("/auth/register")
+async def register_user(user_data: UserRegistration):
+    """Register a new user with Supabase Auth"""
+    try:
+        # Register user with Supabase Auth
+        auth_response = supabase.auth.sign_up({
+            "email": user_data.email,
+            "password": user_data.password,
+            "options": {
+                "data": {
+                    "username": user_data.username,
+                    "full_name": user_data.full_name
+                }
+            }
         })
         
-        if existing_verification:
-            verification = TransactionVerification(**existing_verification)
-            return VerificationResult(
-                transaction_id=request.transaction_id,
-                verified=verification.status == "verified",
-                status=verification.status,
-                amount=verification.amount,
-                bonus_amount=verification.bonus_amount,
-                message="Transaction already processed",
-                verification_data=verification.verification_data
-            )
+        if auth_response.user:
+            return {
+                "message": "Registration successful",
+                "user_id": auth_response.user.id,
+                "email": auth_response.user.email
+            }
+        else:
+            raise HTTPException(status_code=400, detail="Registration failed")
+            
+    except Exception as e:
+        logger.error(f"Registration error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/auth/login")
+async def login_user(credentials: UserLogin):
+    """Login user with Supabase Auth"""
+    try:
+        auth_response = supabase.auth.sign_in_with_password({
+            "email": credentials.email,
+            "password": credentials.password
+        })
         
-        # Verify with payment API
-        api_result = await payment_service.verify_transaction(
-            request.transaction_id,
-            request.payment_method,
-            request.amount
-        )
+        if auth_response.user and auth_response.session:
+            # Get user profile
+            profile_result = supabase.table('profiles').select('*').eq('id', auth_response.user.id).execute()
+            
+            return {
+                "message": "Login successful",
+                "access_token": auth_response.session.access_token,
+                "refresh_token": auth_response.session.refresh_token,
+                "user": {
+                    "id": auth_response.user.id,
+                    "email": auth_response.user.email,
+                    "profile": profile_result.data[0] if profile_result.data else None
+                }
+            }
+        else:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+            
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        raise HTTPException(status_code=401, detail="Authentication failed")
+
+@api_router.post("/auth/logout")
+async def logout_user(current_user: dict = Depends(get_current_user)):
+    """Logout current user"""
+    try:
+        supabase.auth.sign_out()
+        return {"message": "Logout successful"}
+    except Exception as e:
+        logger.error(f"Logout error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Logout failed")
+
+# Profile Management
+@api_router.get("/profile")
+async def get_profile(current_user: dict = Depends(get_current_user)):
+    """Get current user profile with game state"""
+    try:
+        user_id = current_user['id']
         
-        if api_result.get("success") and api_result.get("transaction_found"):
-            # Transaction verified successfully
-            amount = api_result.get("amount", request.amount or 0.0)
-            bonus_amount = payment_service.calculate_bonus(amount)
+        # Get game state
+        game_state_result = supabase.table('game_states').select('*').eq('user_id', user_id).execute()
+        
+        # Get mining rigs
+        rigs_result = supabase.table('mining_rigs').select('*').eq('user_id', user_id).execute()
+        
+        # Get recent transactions
+        transactions_result = supabase.table('transactions').select('*').eq(
+            'user_id', user_id
+        ).order('created_at', desc=True).limit(10).execute()
+        
+        return {
+            "profile": current_user,
+            "game_state": game_state_result.data[0] if game_state_result.data else None,
+            "mining_rigs": rigs_result.data,
+            "recent_transactions": transactions_result.data
+        }
+        
+    except Exception as e:
+        logger.error(f"Profile fetch error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch profile")
+
+@api_router.put("/profile")
+async def update_profile(profile_data: ProfileUpdate, current_user: dict = Depends(get_current_user)):
+    """Update user profile"""
+    try:
+        user_id = current_user['id']
+        update_data = {}
+        
+        if profile_data.username:
+            # Check username availability
+            existing = supabase.table('profiles').select('id').eq('username', profile_data.username).neq('id', user_id).execute()
+            if existing.data:
+                raise HTTPException(status_code=400, detail="Username already taken")
+            update_data['username'] = profile_data.username
+        
+        if profile_data.full_name is not None:
+            update_data['full_name'] = profile_data.full_name
+        
+        if profile_data.bio is not None:
+            update_data['bio'] = profile_data.bio
+        
+        if profile_data.avatar_url is not None:
+            update_data['avatar_url'] = profile_data.avatar_url
+        
+        if update_data:
+            update_data['updated_at'] = datetime.now().isoformat()
+            updated_profile = supabase.table('profiles').update(update_data).eq('id', user_id).execute()
+            return updated_profile.data[0]
+        
+        return {"message": "No changes made"}
+        
+    except Exception as e:
+        logger.error(f"Profile update error: {str(e)}")
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail="Profile update failed")
+
+# Game State Management
+@api_router.get("/game/state")
+async def get_game_state(current_user: dict = Depends(get_current_user)):
+    """Get complete game state"""
+    try:
+        user_id = current_user['id']
+        
+        # Get game state
+        game_state_result = supabase.table('game_states').select('*').eq('user_id', user_id).execute()
+        
+        if not game_state_result.data:
+            # Create initial game state
+            initial_state = {
+                'user_id': user_id,
+                'current_level': 1,
+                'experience_points': 0,
+                'current_coins': 1000,
+                'main_balance': 1000.0,
+                'bonus_balance': 0.0,
+                'energy': 100,
+                'max_energy': 100,
+                'energy_regen_rate': 1.0,
+                'click_power': 1,
+                'auto_mining_rate': 0.0,
+                'total_clicks': 0,
+                'achievements': [],
+                'game_settings': {
+                    'sound_enabled': True,
+                    'notifications_enabled': True,
+                    'auto_collect_rewards': False
+                }
+            }
+            
+            created_state = supabase.table('game_states').insert(initial_state).execute()
+            return created_state.data[0]
+        
+        # Calculate offline rewards
+        offline_rewards = await calculate_offline_rewards(user_id)
+        game_state = game_state_result.data[0]
+        
+        if offline_rewards > 0:
+            # Update balance with offline rewards
+            new_balance = game_state['current_coins'] + offline_rewards
+            supabase.table('game_states').update({
+                'current_coins': new_balance,
+                'main_balance': game_state['main_balance'] + offline_rewards
+            }).eq('user_id', user_id).execute()
+            
+            game_state['current_coins'] = new_balance
+            game_state['main_balance'] = game_state['main_balance'] + offline_rewards
+            game_state['offline_rewards'] = offline_rewards
+        
+        return game_state
+        
+    except Exception as e:
+        logger.error(f"Game state fetch error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch game state")
+
+@api_router.post("/game/state")
+async def save_game_state(state_data: GameStateUpdate, current_user: dict = Depends(get_current_user)):
+    """Save game state"""
+    try:
+        user_id = current_user['id']
+        update_data = {}
+        
+        # Build update data from provided fields
+        if state_data.current_level is not None:
+            update_data['current_level'] = max(1, state_data.current_level)
+        if state_data.experience_points is not None:
+            update_data['experience_points'] = max(0, state_data.experience_points)
+        if state_data.current_coins is not None:
+            update_data['current_coins'] = max(0, state_data.current_coins)
+        if state_data.main_balance is not None:
+            update_data['main_balance'] = max(0, state_data.main_balance)
+        if state_data.energy is not None:
+            update_data['energy'] = state_data.energy
+        if state_data.max_energy is not None:
+            update_data['max_energy'] = state_data.max_energy
+        if state_data.energy_regen_rate is not None:
+            update_data['energy_regen_rate'] = state_data.energy_regen_rate
+        if state_data.click_power is not None:
+            update_data['click_power'] = state_data.click_power
+        if state_data.auto_mining_rate is not None:
+            update_data['auto_mining_rate'] = state_data.auto_mining_rate
+        if state_data.total_clicks is not None:
+            update_data['total_clicks'] = state_data.total_clicks
+        if state_data.achievements is not None:
+            update_data['achievements'] = state_data.achievements
+        if state_data.game_settings is not None:
+            update_data['game_settings'] = state_data.game_settings
+        
+        if update_data:
+            update_data['updated_at'] = datetime.now().isoformat()
+            updated_state = supabase.table('game_states').update(update_data).eq('user_id', user_id).execute()
+            
+            # Broadcast update to all user devices
+            await manager.send_personal_message(json.dumps({
+                'type': 'game_state_updated',
+                'data': updated_state.data[0]
+            }), user_id)
+            
+            return updated_state.data[0]
+        
+        return {"message": "No changes made"}
+        
+    except Exception as e:
+        logger.error(f"Game state save error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to save game state")
+
+# Mining Rigs Management
+@api_router.get("/mining-rigs")
+async def get_mining_rigs(current_user: dict = Depends(get_current_user)):
+    """Get user's mining rigs"""
+    try:
+        user_id = current_user['id']
+        rigs_result = supabase.table('mining_rigs').select('*').eq('user_id', user_id).order('created_at').execute()
+        return rigs_result.data
+        
+    except Exception as e:
+        logger.error(f"Mining rigs fetch error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch mining rigs")
+
+@api_router.post("/mining-rigs")
+async def create_mining_rig(rig_data: MiningRigCreate, current_user: dict = Depends(get_current_user)):
+    """Create new mining rig"""
+    try:
+        user_id = current_user['id']
+        
+        # Get rig configuration based on type
+        rig_configs = {
+            RigType.BASIC_CPU: {'power': 0.5, 'efficiency': 1.0, 'cost': 100, 'rarity': 'common'},
+            RigType.ENTRY_GPU: {'power': 0.8, 'efficiency': 1.0, 'cost': 200, 'rarity': 'common'},
+            RigType.DUAL_CORE: {'power': 1.2, 'efficiency': 1.05, 'cost': 300, 'rarity': 'common'},
+            RigType.QUAD_CORE: {'power': 2.0, 'efficiency': 1.1, 'cost': 500, 'rarity': 'uncommon'},
+            RigType.GTX_MINER: {'power': 2.5, 'efficiency': 1.15, 'cost': 700, 'rarity': 'uncommon'},
+            RigType.ASIC_BASIC: {'power': 3.0, 'efficiency': 1.2, 'cost': 900, 'rarity': 'uncommon'},
+            RigType.RTX_3080: {'power': 4.2, 'efficiency': 1.25, 'cost': 1500, 'rarity': 'rare'},
+            RigType.ASIC_S19: {'power': 5.0, 'efficiency': 1.3, 'cost': 2000, 'rarity': 'rare'},
+            RigType.CUSTOM_RIG: {'power': 5.8, 'efficiency': 1.2, 'cost': 2500, 'rarity': 'rare'},
+            RigType.RTX_4090: {'power': 8.5, 'efficiency': 1.4, 'cost': 4000, 'rarity': 'epic'},
+            RigType.ASIC_S21: {'power': 10.0, 'efficiency': 1.5, 'cost': 5000, 'rarity': 'epic'},
+            RigType.QUANTUM_CHIP: {'power': 12.0, 'efficiency': 2.0, 'cost': 7500, 'rarity': 'epic'},
+            RigType.AI_PROCESSOR: {'power': 18.0, 'efficiency': 1.75, 'cost': 12000, 'rarity': 'legendary'},
+            RigType.FUSION_REACTOR: {'power': 22.0, 'efficiency': 2.0, 'cost': 20000, 'rarity': 'legendary'},
+            RigType.BLACK_HOLE: {'power': 50.0, 'efficiency': 2.0, 'cost': 50000, 'rarity': 'mythic'},
+            RigType.MAINET_CORE: {'power': 100.0, 'efficiency': 5.0, 'cost': 100000, 'rarity': 'mythic'},
+        }
+        
+        config = rig_configs.get(rig_data.rig_type)
+        if not config:
+            raise HTTPException(status_code=400, detail="Invalid rig type")
+        
+        # Check user balance
+        game_state = supabase.table('game_states').select('current_coins').eq('user_id', user_id).execute()
+        if not game_state.data or game_state.data[0]['current_coins'] < config['cost']:
+            raise HTTPException(status_code=400, detail="Insufficient balance")
+        
+        # Create mining rig
+        new_rig = {
+            'user_id': user_id,
+            'rig_name': rig_data.rig_name,
+            'rig_type': rig_data.rig_type.value,
+            'mining_power': config['power'],
+            'efficiency_rating': config['efficiency'],
+            'rarity': config['rarity'],
+            'purchase_price': config['cost'],
+            'is_active': True
+        }
+        
+        created_rig = supabase.table('mining_rigs').insert(new_rig).execute()
+        
+        # Deduct cost from user balance
+        new_balance = game_state.data[0]['current_coins'] - config['cost']
+        supabase.table('game_states').update({
+            'current_coins': new_balance,
+            'main_balance': new_balance
+        }).eq('user_id', user_id).execute()
+        
+        # Record transaction
+        supabase.table('transactions').insert({
+            'user_id': user_id,
+            'transaction_type': 'purchase',
+            'amount': -config['cost'],
+            'balance_before': game_state.data[0]['current_coins'],
+            'balance_after': new_balance,
+            'description': f"Purchased {rig_data.rig_type.value}: {rig_data.rig_name}",
+            'related_rig_id': created_rig.data[0]['id']
+        }).execute()
+        
+        return created_rig.data[0]
+        
+    except Exception as e:
+        logger.error(f"Mining rig creation error: {str(e)}")
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail="Failed to create mining rig")
+
+# Transaction System
+@api_router.get("/transactions")
+async def get_transactions(limit: int = 50, offset: int = 0, current_user: dict = Depends(get_current_user)):
+    """Get user transaction history"""
+    try:
+        user_id = current_user['id']
+        
+        transactions_result = supabase.table('transactions').select('*').eq(
+            'user_id', user_id
+        ).order('created_at', desc=True).range(offset, offset + limit - 1).execute()
+        
+        return {
+            'transactions': transactions_result.data,
+            'count': len(transactions_result.data)
+        }
+        
+    except Exception as e:
+        logger.error(f"Transactions fetch error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch transactions")
+
+# IDTX Verification System
+@api_router.post("/verify-transaction")
+async def verify_transaction(request: TransactionVerificationRequest, current_user: dict = Depends(get_current_user)):
+    """Verify transaction ID (IDTX) for deposits"""
+    try:
+        user_id = current_user['id']
+        
+        # Check if transaction already verified
+        existing = supabase.table('transaction_verifications').select('*').eq(
+            'user_id', user_id
+        ).eq('transaction_id', request.transaction_id).execute()
+        
+        if existing.data:
+            verification = existing.data[0]
+            return {
+                'transaction_id': request.transaction_id,
+                'verified': verification['status'] == 'verified',
+                'status': verification['status'],
+                'amount': verification['amount'],
+                'bonus_amount': verification['bonus_amount'],
+                'message': 'Transaction already processed'
+            }
+        
+        # Simulate API verification (in real implementation, call actual APIs)
+        is_valid = len(request.transaction_id) >= 8 and not request.transaction_id.upper().startswith('INVALID')
+        amount = request.amount or (10.0 if request.payment_method == PaymentMethod.PAYEER else 5.0)
+        
+        if is_valid:
+            bonus_amount = round(amount * 0.17, 2)  # 17% bonus
             
             # Create verification record
-            verification = TransactionVerification(
-                user_id=current_user.id,
-                transaction_id=request.transaction_id,
-                amount=amount,
-                currency=request.currency,
-                payment_method=request.payment_method,
-                status="verified",
-                bonus_amount=bonus_amount,
-                verification_data=api_result,
-                verified_at=datetime.now(timezone.utc)
-            )
+            verification = supabase.table('transaction_verifications').insert({
+                'user_id': user_id,
+                'transaction_id': request.transaction_id,
+                'amount': amount,
+                'currency': request.currency,
+                'payment_method': request.payment_method.value,
+                'status': 'verified',
+                'bonus_amount': bonus_amount,
+                'verified_at': datetime.now().isoformat()
+            }).execute()
             
-            # Save to database
-            await db.transaction_verifications.insert_one(verification.dict())
+            # Credit user balance
+            game_state = supabase.table('game_states').select('current_coins, main_balance, bonus_balance').eq('user_id', user_id).execute()
+            current_balance = game_state.data[0]['current_coins'] if game_state.data else 0
+            current_main = game_state.data[0]['main_balance'] if game_state.data else 0
+            current_bonus = game_state.data[0]['bonus_balance'] if game_state.data else 0
             
-            # Credit user balance and bonus
             total_credit = amount + bonus_amount
-            await db.users.update_one(
-                {"id": current_user.id},
-                {
-                    "$inc": {
-                        "balance": total_credit,
-                        "bonus_balance": bonus_amount,
-                        "total_earned": total_credit
-                    }
-                }
-            )
+            new_balance = current_balance + total_credit
+            new_main = current_main + amount
+            new_bonus = current_bonus + bonus_amount
             
-            # Mark bonus as credited
-            await db.transaction_verifications.update_one(
-                {"id": verification.id},
-                {"$set": {"bonus_credited": True}}
-            )
+            supabase.table('game_states').update({
+                'current_coins': new_balance,
+                'main_balance': new_main,
+                'bonus_balance': new_bonus
+            }).eq('user_id', user_id).execute()
             
-            return VerificationResult(
-                transaction_id=request.transaction_id,
-                verified=True,
-                status="verified",
-                amount=amount,
-                bonus_amount=bonus_amount,
-                message=f"Transaction verified! {amount} {request.currency} + {bonus_amount} bonus (17%) credited to your account.",
-                verification_data=api_result
-            )
+            # Record transaction
+            supabase.table('transactions').insert({
+                'user_id': user_id,
+                'transaction_type': 'deposit_bonus',
+                'amount': total_credit,
+                'balance_before': current_balance,
+                'balance_after': new_balance,
+                'description': f"Verified deposit: {request.transaction_id} + 17% bonus",
+                'metadata': {'original_amount': amount, 'bonus_amount': bonus_amount}
+            }).execute()
+            
+            return {
+                'transaction_id': request.transaction_id,
+                'verified': True,
+                'status': 'verified',
+                'amount': amount,
+                'bonus_amount': bonus_amount,
+                'message': f"Transaction verified! {amount} {request.currency} + {bonus_amount} bonus credited."
+            }
         
         else:
-            # Transaction not found or verification failed
-            error_message = api_result.get("error", "Transaction not found or invalid")
+            # Record failed verification
+            supabase.table('transaction_verifications').insert({
+                'user_id': user_id,
+                'transaction_id': request.transaction_id,
+                'amount': amount,
+                'currency': request.currency,
+                'payment_method': request.payment_method.value,
+                'status': 'not_found'
+            }).execute()
             
-            verification = TransactionVerification(
-                user_id=current_user.id,
-                transaction_id=request.transaction_id,
-                amount=request.amount or 0.0,
-                currency=request.currency,
-                payment_method=request.payment_method,
-                status="not_found" if "not found" in error_message.lower() else "failed",
-                verification_data=api_result
-            )
-            
-            await db.transaction_verifications.insert_one(verification.dict())
-            
-            return VerificationResult(
-                transaction_id=request.transaction_id,
-                verified=False,
-                status=verification.status,
-                amount=request.amount,
-                bonus_amount=0.0,
-                message=error_message,
-                verification_data=api_result
-            )
-            
+            return {
+                'transaction_id': request.transaction_id,
+                'verified': False,
+                'status': 'not_found',
+                'amount': amount,
+                'bonus_amount': 0,
+                'message': 'Transaction not found or invalid'
+            }
+        
     except Exception as e:
         logger.error(f"Transaction verification error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Verification failed")
 
-@api_router.get("/verification-history")
-async def get_verification_history(current_user: User = Depends(get_current_user)):
-    """Get user's transaction verification history"""
+# Helper Functions
+async def calculate_offline_rewards(user_id: str) -> float:
+    """Calculate offline mining rewards"""
     try:
-        verifications = await db.transaction_verifications.find(
-            {"user_id": current_user.id}
-        ).sort("created_at", -1).to_list(length=50)
-        
-        return [TransactionVerification(**v) for v in verifications]
-        
+        # Call Supabase function
+        result = supabase.rpc('calculate_offline_rewards', {'p_user_id': user_id}).execute()
+        return float(result.data) if result.data else 0.0
     except Exception as e:
-        logger.error(f"Error fetching verification history: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch verification history")
+        logger.error(f"Offline rewards calculation error: {str(e)}")
+        return 0.0
 
-@api_router.get("/admin/verification-stats")
-async def get_verification_stats(current_user: User = Depends(get_current_user)):
-    """Get verification statistics (admin functionality)"""
+# WebSocket endpoint
+@app.websocket("/ws/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: str):
+    await manager.connect(websocket, user_id)
     try:
-        # Simple admin check - in production you'd have proper role management
-        total_verifications = await db.transaction_verifications.count_documents({})
-        verified_count = await db.transaction_verifications.count_documents({"status": "verified"})
-        failed_count = await db.transaction_verifications.count_documents({"status": {"$in": ["failed", "not_found"]}})
-        pending_count = await db.transaction_verifications.count_documents({"status": "pending"})
-        
-        # Total amounts
-        pipeline = [
-            {"$match": {"status": "verified"}},
-            {"$group": {
-                "_id": None,
-                "total_amount": {"$sum": "$amount"},
-                "total_bonus": {"$sum": "$bonus_amount"}
-            }}
-        ]
-        
-        result = await db.transaction_verifications.aggregate(pipeline).to_list(length=1)
-        totals = result[0] if result else {"total_amount": 0, "total_bonus": 0}
-        
-        return {
-            "total_verifications": total_verifications,
-            "verified": verified_count,
-            "failed": failed_count,
-            "pending": pending_count,
-            "total_amount_verified": totals["total_amount"],
-            "total_bonus_paid": totals["total_bonus"],
-            "localStorage_message": "To export user data for analysis, please save localStorage data and send to maximlprive90@gmail.com for processing."
-        }
-        
-    except Exception as e:
-        logger.error(f"Error fetching verification stats: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch verification statistics")
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
 
-@api_router.post("/admin/bulk-verify")
-async def bulk_verify_transactions(
-    transaction_ids: List[str],
-    payment_method: PaymentMethod,
-    current_user: User = Depends(get_current_user)
-):
-    """Bulk verify multiple transactions (admin functionality)"""
-    try:
-        results = []
-        
-        for transaction_id in transaction_ids[:10]:  # Limit to 10 transactions per request
-            try:
-                request = VerificationRequest(
-                    transaction_id=transaction_id,
-                    payment_method=payment_method
-                )
-                
-                result = await verify_transaction(request, current_user)
-                results.append({
-                    "transaction_id": transaction_id,
-                    "success": result.verified,
-                    "status": result.status,
-                    "message": result.message
-                })
-                
-            except Exception as e:
-                results.append({
-                    "transaction_id": transaction_id,
-                    "success": False,
-                    "status": "error",
-                    "message": str(e)
-                })
-        
-        return {
-            "processed": len(results),
-            "results": results
-        }
-        
-    except Exception as e:
-        logger.error(f"Bulk verification error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Bulk verification failed")
+# Health check
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
-# Include the router in the main app
+# Include API router
 app.include_router(api_router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
