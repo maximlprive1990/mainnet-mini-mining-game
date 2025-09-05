@@ -739,12 +739,207 @@
 
             <!-- Mining Rigs Tab -->
             <div id="tab-mining-rigs" class="tab-content">
-                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Installations Mining</h2>
-                <div id="mining-rigs-container">
-                    <!-- Mining rigs content from original implementation -->
-                    <p style="color: #ccc; text-align: center; padding: 40px;">
-                        Système de mining rigs chargé...
-                    </p>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-white">
+                        <i data-lucide="server" class="icon text-orange-400"></i>
+                        <span style="margin-left: 8px;">Installations Mining</span>
+                    </h2>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-400">Hashrate Total:</span>
+                        <span class="text-lg font-bold text-orange-400" id="mining-total-hashrate">0.00 H/s</span>
+                    </div>
+                </div>
+
+                <!-- Mining Racks -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Rack 1 (2 slots) -->
+                    <div class="cyber-card">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-white mb-3 flex items-center">
+                                <i data-lucide="hard-drive" class="icon text-blue-400"></i>
+                                <span style="margin-left: 8px;">Rack Compact (2 slots)</span>
+                                <span class="ml-2 text-xs bg-blue-600 px-2 py-1 rounded">Prix: 500 tokens</span>
+                            </h3>
+                            <div class="grid grid-cols-2 gap-2" id="rack-1">
+                                <div class="mining-slot empty" data-rack="1" data-slot="1" onclick="openMinerSelection(1, 1)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                                <div class="mining-slot empty" data-rack="1" data-slot="2" onclick="openMinerSelection(1, 2)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-center">
+                                <button class="cyber-button text-xs" onclick="buyRack(1)" id="buy-rack-1">Acheter Rack</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rack 2 (3 slots) -->
+                    <div class="cyber-card">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-white mb-3 flex items-center">
+                                <i data-lucide="server" class="icon text-purple-400"></i>
+                                <span style="margin-left: 8px;">Rack Standard (3 slots)</span>
+                                <span class="ml-2 text-xs bg-purple-600 px-2 py-1 rounded">Prix: 1200 tokens</span>
+                            </h3>
+                            <div class="grid grid-cols-3 gap-2" id="rack-2">
+                                <div class="mining-slot empty" data-rack="2" data-slot="1" onclick="openMinerSelection(2, 1)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                                <div class="mining-slot empty" data-rack="2" data-slot="2" onclick="openMinerSelection(2, 2)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                                <div class="mining-slot empty" data-rack="2" data-slot="3" onclick="openMinerSelection(2, 3)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-center">
+                                <button class="cyber-button text-xs" onclick="buyRack(2)" id="buy-rack-2" disabled>Acheter Rack</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rack 3 (4 slots) -->
+                    <div class="cyber-card">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-white mb-3 flex items-center">
+                                <i data-lucide="database" class="icon text-red-400"></i>
+                                <span style="margin-left: 8px;">Rack Pro (4 slots)</span>
+                                <span class="ml-2 text-xs bg-red-600 px-2 py-1 rounded">Prix: 2500 tokens</span>
+                            </h3>
+                            <div class="grid grid-cols-2 gap-2" id="rack-3">
+                                <div class="mining-slot empty" data-rack="3" data-slot="1" onclick="openMinerSelection(3, 1)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                                <div class="mining-slot empty" data-rack="3" data-slot="2" onclick="openMinerSelection(3, 2)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                                <div class="mining-slot empty" data-rack="3" data-slot="3" onclick="openMinerSelection(3, 3)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                                <div class="mining-slot empty" data-rack="3" data-slot="4" onclick="openMinerSelection(3, 4)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-center">
+                                <button class="cyber-button text-xs" onclick="buyRack(3)" id="buy-rack-3" disabled>Acheter Rack</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rack 4 (4 slots Premium) -->
+                    <div class="cyber-card">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-white mb-3 flex items-center">
+                                <i data-lucide="zap" class="icon text-yellow-400"></i>
+                                <span style="margin-left: 8px;">Rack Elite (4 slots)</span>
+                                <span class="ml-2 text-xs bg-yellow-600 px-2 py-1 rounded">Prix: 5000 tokens</span>
+                            </h3>
+                            <div class="grid grid-cols-2 gap-2" id="rack-4">
+                                <div class="mining-slot empty" data-rack="4" data-slot="1" onclick="openMinerSelection(4, 1)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                                <div class="mining-slot empty" data-rack="4" data-slot="2" onclick="openMinerSelection(4, 2)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                                <div class="mining-slot empty" data-rack="4" data-slot="3" onclick="openMinerSelection(4, 3)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                                <div class="mining-slot empty" data-rack="4" data-slot="4" onclick="openMinerSelection(4, 4)">
+                                    <div class="slot-content">
+                                        <i data-lucide="plus" class="icon text-gray-500"></i>
+                                        <span class="text-xs text-gray-500">Slot Vide</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-center">
+                                <button class="cyber-button text-xs" onclick="buyRack(4)" id="buy-rack-4" disabled>Acheter Rack</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Miners Inventory -->
+                <div class="cyber-card">
+                    <div class="p-6">
+                        <h3 class="font-semibold text-white mb-4">
+                            <i data-lucide="package" class="icon text-green-400"></i>
+                            <span style="margin-left: 8px;">Inventaire des Mineurs</span>
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="miners-inventory">
+                            <!-- Miners will be populated by JavaScript -->
+                        </div>
+                        <div class="mt-4 text-center">
+                            <button class="cyber-button" onclick="showMinerShop()">
+                                <i data-lucide="shopping-cart" class="icon"></i>
+                                <span style="margin-left: 8px;">Boutique de Mineurs</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mining Statistics -->
+                <div class="cyber-card mt-6">
+                    <div class="p-6">
+                        <h3 class="font-semibold text-white mb-4">
+                            <i data-lucide="trending-up" class="icon text-cyan-400"></i>
+                            <span style="margin-left: 8px;">Statistiques Mining</span>
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="text-center p-3 bg-gray-800 rounded">
+                                <div class="text-orange-400 text-xl font-bold" id="mining-active-miners">0</div>
+                                <div class="text-xs text-gray-400">Mineurs Actifs</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-800 rounded">
+                                <div class="text-blue-400 text-xl font-bold" id="mining-revenue">0.00</div>
+                                <div class="text-xs text-gray-400">Revenus/min</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-800 rounded">
+                                <div class="text-green-400 text-xl font-bold" id="mining-efficiency">0%</div>
+                                <div class="text-xs text-gray-400">Efficacité</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-800 rounded">
+                                <div class="text-purple-400 text-xl font-bold" id="mining-power-consumption">0W</div>
+                                <div class="text-xs text-gray-400">Consommation</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
