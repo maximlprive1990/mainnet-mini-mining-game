@@ -57,7 +57,6 @@ class UpgradeType(str, Enum):
     DOUBLE_CLICK = "double_click"
     AUTO_MINING = "auto_mining"
     MAX_ENERGY = "max_energy"
-    MAX_ENERGY = "max_energy"
 
 # Models
 class User(BaseModel):
