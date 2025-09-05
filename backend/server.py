@@ -7,12 +7,16 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone
 import bcrypt
 import jwt
 from enum import Enum
+import httpx
+import asyncio
+import hashlib
+import hmac
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
