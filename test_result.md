@@ -238,11 +238,9 @@ metadata:
 test_plan:
   current_focus:
     - "Invalid Transaction Handling"
-    - "Bulk Verification System"
     - "Balance Update After Verification"
   stuck_tasks:
     - "Invalid Transaction Handling"
-    - "Bulk Verification System"
     - "Balance Update After Verification"
   test_all: true
   test_priority: "high_first"
